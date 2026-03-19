@@ -33,6 +33,55 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: Container(
+          color: AppTheme.lightYellow,
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 24,
+            right: 24,
+            bottom: 10,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Text(
+                    'SENIOR',
+                    style: TextStyle(
+                      color: AppTheme.primaryTeal,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  Text(
+                    'STEP PASS',
+                    style: TextStyle(
+                      color: AppTheme.darkYellow,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.menu,
+                  size: 36,
+                  color: AppTheme.primaryTeal,
+                ),
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         color: AppTheme.lightYellow,
