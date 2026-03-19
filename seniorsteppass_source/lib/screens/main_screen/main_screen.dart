@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../home/landing_page.dart';
+import '../project_main/project_main_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,10 +17,16 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const LandingPage(),
-    const Scaffold(body: Center(child: Text('Clipboard Page'))),
-    const Scaffold(body: Center(child: Text('Briefcase Page'))),
-    const Scaffold(body: Center(child: Text('Bookmark Page'))),
-    const Scaffold(body: Center(child: Text('Profile Page'))),
+    const ProjectMainScreen(), // Project Placeholder (Project Main)
+    const Scaffold(
+      body: Center(child: Text('Internship Placeholder')),
+    ), // Internship Placeholder
+    const Scaffold(
+      body: Center(child: Text('Favorite Placeholder')),
+    ), // Favorite Placeholder
+    const Scaffold(
+      body: Center(child: Text('Profile Placeholder')),
+    ), // Profile Placeholder
   ];
 
   @override
@@ -27,7 +36,8 @@ class _MainScreenState extends State<MainScreen> {
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         color: AppTheme.lightYellow,
-        padding: const EdgeInsets.only(bottom: 16.0, top: 8.0, left: 16.0, right: 16.0),
+        // padding: const EdgeInsets.only(bottom: 16.0, top: 8.0, left: 16.0, right: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
         child: Container(
           decoration: BoxDecoration(
             color: AppTheme.lightYellow,
@@ -57,10 +67,17 @@ class _MainScreenState extends State<MainScreen> {
         });
       },
       child: Container(
+        width: 65,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryTeal : Colors.transparent,
-          shape: BoxShape.circle,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.horizontal(
+            left: Radius.circular(30),
+            right: Radius.circular(30),
+          ),
+
+          // borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           icon,
