@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../home/landing_page.dart';
 import '../project_main/project_main_screen.dart';
+import '../menu/menu_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -46,29 +47,22 @@ class _MainScreenState extends State<MainScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
-                    'SENIOR',
-                    style: TextStyle(
-                      color: AppTheme.primaryTeal,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  Text(
-                    'STEP PASS',
-                    style: TextStyle(
-                      color: AppTheme.darkYellow,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
+              // Image.asset(
+              //   '../../../assets/logo.png',
+              //   height: 48,
+              //   fit: BoxFit.contain,
+              // ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _currentIndex = 0;
+                  });
+                },
+                child: Image.asset(
+                  '../../../assets/logo.png',
+                  height: 48,
+                  fit: BoxFit.contain,
+                ),
               ),
               IconButton(
                 icon: const Icon(
@@ -76,7 +70,12 @@ class _MainScreenState extends State<MainScreen> {
                   size: 36,
                   color: AppTheme.primaryTeal,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MenuScreen()),
+                  );
+                },
               ),
             ],
           ),
