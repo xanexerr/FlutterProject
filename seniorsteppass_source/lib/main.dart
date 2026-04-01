@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
-import 'screens/main_screen/main_screen.dart';
+import 'screens/auth/login_screen.dart';
 
 void main() {
   runApp(const SeniorStepPassApp());
@@ -12,9 +12,9 @@ class SeniorStepPassApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Senior Step Pass',
+      title: 'SSP',
       theme: AppTheme.themeData,
-      home: const MainScreen(),
+      home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
