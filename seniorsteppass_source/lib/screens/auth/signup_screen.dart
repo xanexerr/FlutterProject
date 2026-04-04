@@ -26,23 +26,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo Text
-                const Text(
-                  'SENIOR',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryTeal,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const Text(
-                  'STEP PASS',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.darkYellow,
-                    letterSpacing: 1.2,
-                  ),
+                Image.asset(
+                  '../../../assets/logo.png',
+                  height: 80,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 40),
                 
