@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart';
 import '../main_screen/main_screen.dart';
+import '../../loading_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -45,6 +46,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Text(
                         'SIGN UP',
                         style: TextStyle(
+                          fontFamily: 'Inter',
                           color: AppTheme.white,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -76,10 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         height: 48,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const MainScreen()),
-                            );
+                            _handleSignUp(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.white,
@@ -90,6 +89,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(
+                              fontFamily: 'Inter',
                               color: AppTheme.primaryTeal,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -110,11 +110,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: RichText(
                           text: const TextSpan(
                             text: 'Have an account? ',
-                            style: TextStyle(color: AppTheme.white, fontSize: 13),
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: AppTheme.white,
+                              fontSize: 13,
+                            ),
                             children: [
                               TextSpan(
                                 text: 'Log In',
                                 style: TextStyle(
+                                  fontFamily: 'Inter',
                                   color: AppTheme.darkYellow,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -149,15 +154,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
       child: TextField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(fontFamily: 'Inter', color: Colors.white),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+          hintStyle: TextStyle(
+            fontFamily: 'Inter',
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 14,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           suffixIcon: Icon(icon, color: Colors.white.withOpacity(0.7), size: 20),
         ),
       ),
     );
+  }
+
+  void _handleSignUp(BuildContext context) {
+    // Simple validation - fields must not be empty
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      // Show error message
+
+      return;
+    }
+
+    // Show loading screen
+    final navigator = Navigator.of(context);
+    navigator.pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const LoadingScreen(message: 'Signing in...'),
+      ),
+    );
+    // Navigator.of(context).pushReplacement(
+    //   MaterialPageRoute(
+    //     builder: (context) => const LoadingScreen(message: 'Signing in...'),
+    //   ),
+    // );
+
+    // Navigate to main screen after 2 seconds
+    Future.delayed(const Duration(seconds: 1), () {
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    });
   }
 }

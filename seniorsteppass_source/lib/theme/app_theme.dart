@@ -14,8 +14,18 @@ class AppTheme {
   static const Color head2 = Color(0xFF606060);
   static const Color head3 = Color(0xFF878787);
 
+  // Additional color aliases for easier usage
+  static const Color primaryTeal = primary;
+  static const Color textTeal = primary;
+  static const Color darkYellow = second;
+  static const Color lightYellow = third;
+  static const Color paleYellow = bg;
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color lightGrey = Color(0xFFF5F5F5);
+
   static ThemeData get themeData {
     return ThemeData(
+      fontFamily: 'Inter', // Default font สำหรับทั้งแอป
       primaryColor: primary,
       scaffoldBackgroundColor: bg,
       colorScheme: ColorScheme.fromSeed(
@@ -33,14 +43,27 @@ class AppTheme {
           color: head,
           fontSize: 20,
           fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
         ),
       ),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(color: head, fontWeight: FontWeight.bold),
-        displayMedium: TextStyle(color: head2, fontWeight: FontWeight.bold),
-        displaySmall: TextStyle(color: head3, fontWeight: FontWeight.bold),
-        bodyLarge: TextStyle(color: head),
-        bodyMedium: TextStyle(color: head2),
+        displayLarge: TextStyle(
+          color: head,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
+        ),
+        displayMedium: TextStyle(
+          color: head2,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
+        ),
+        displaySmall: TextStyle(
+          color: head3,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Inter',
+        ),
+        bodyLarge: TextStyle(color: head, fontFamily: 'Inter'),
+        bodyMedium: TextStyle(color: head2, fontFamily: 'Inter'),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
