@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:seniorsteppass_source/theme/app_theme.dart';
+import '../../models/favorites_manager.dart';
 import '../../widgets/common_buttons.dart';
-import '../../theme/app_theme.dart';
+import '../main_screen/main_screen.dart';
+import 'request_join_project.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final dynamic project;
@@ -16,6 +18,8 @@ class ProjectDetailScreen extends StatefulWidget {
 }
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,14 +31,37 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              Text(
-                widget.project.title ?? 'TOPIC Name',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              // Title with Heart Icon
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.project.title ?? 'TOPIC Name',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _favoritesManager.toggleFavorite(widget.project.id);
+                      });
+                    },
+                    child: Icon(
+                      _favoritesManager.isFavorite(widget.project.id)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: _favoritesManager.isFavorite(widget.project.id)
+                          ? Colors.red
+                          : Colors.grey[400],
+                      size: 24,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
 
@@ -50,20 +77,57 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               const SizedBox(height: 12),
 
               // Categories Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFA500),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Categories',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+              Builder(
+                builder: (context) {
+                  final categories = widget.project.categories;
+                  final categoryList = categories is List
+                      ? categories
+                      : categories != null
+                          ? [categories]
+                          : <dynamic>[];
+
+                  if (categoryList.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: categoryList.map((category) {
+                      final label = category.toString();
+
+                      return InkWell(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MainScreen(
+                                initialIndex: 1,
+                                projectFilters: {label},
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFA500),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
               const SizedBox(height: 16),
 
@@ -102,7 +166,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               // Team Members List
               _buildTeamMemberCard(
                 avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor: const Color(0xFF1B6A68),
+                backgroundColor:  AppTheme.info,
                 name: 'Mrs. Unknown Norname',
                 email: 'contacting@example.com',
                 index: 0,
@@ -110,7 +174,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               const SizedBox(height: 8),
               _buildTeamMemberCard(
                 avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor: const Color(0xFFF2F5CD),
+                backgroundColor:  AppTheme.info,
                 name: 'Mrs. Unknown Norname',
                 email: 'contacting@example.com',
                 index: 1,
@@ -118,7 +182,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               const SizedBox(height: 8),
               _buildTeamMemberCard(
                 avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor: const Color(0xFF1B6A68),
+                backgroundColor:  AppTheme.info,
                 name: 'Mrs. Unknown Norname',
                 email: 'contacting@example.com',
                 index: 2,
@@ -126,7 +190,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               const SizedBox(height: 8),
               _buildTeamMemberCard(
                 avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor: const Color(0xFFF2F5CD),
+                backgroundColor:  AppTheme.info,
                 name: 'Mrs. Unknown Norname',
                 email: 'contacting@example.com',
                 index: 3,
@@ -174,7 +238,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 width: double.infinity,
                 height: 40,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RequestJoinProjectScreen(
+                          project: widget.project,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF27AE60),
                     shape: RoundedRectangleBorder(
@@ -207,7 +280,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     required String email,
     required int index,
   }) {
-    final isYellow = index % 2 == 1;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -237,7 +309,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isYellow ? Colors.black87 : Colors.white,
+                    color: AppTheme.head,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -245,7 +317,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   email,
                   style: TextStyle(
                     fontSize: 10,
-                    color: isYellow ? Colors.black54 : Colors.white70,
+                    color: AppTheme.head,
                   ),
                 ),
               ],
@@ -253,19 +325,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ),
 
           // Icons
-          Row(
-            children: [
-              Text(
-                '🤩',
-                style: TextStyle(fontSize: 14),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '😊',
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
+        
         ],
       ),
     );

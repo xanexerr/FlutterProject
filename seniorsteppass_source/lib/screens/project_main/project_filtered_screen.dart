@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/mock_data.dart';
+import '../../models/favorites_manager.dart';
 import 'project_detail_screen.dart';
 import '../../widgets/common_buttons.dart';
 
@@ -15,6 +16,7 @@ class _ProjectFilteredScreenState extends State<ProjectFilteredScreen> {
   Set<String> selectedFilters = {};
   List<dynamic> filteredResults = [];
   bool hasFiltered = false;
+  final FavoritesManager _favoritesManager = FavoritesManager();
 
   final List<String> filterOptions = [
     'Software Engineer',
@@ -214,7 +216,9 @@ class _ProjectFilteredScreenState extends State<ProjectFilteredScreen> {
           MaterialPageRoute(
             builder: (context) => ProjectDetailScreen(project: project),
           ),
-        );
+        ).then((_) {
+          setState(() {});
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12.0),
@@ -254,17 +258,41 @@ class _ProjectFilteredScreenState extends State<ProjectFilteredScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    project.title.isNotEmpty ? project.title : "Title",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          project.title.isNotEmpty ? project.title : "Title",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _favoritesManager.toggleFavorite(project.id);
+                          });
+                        },
+                        child: Icon(
+                          _favoritesManager.isFavorite(project.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: _favoritesManager.isFavorite(project.id)
+                              ? Colors.red
+                              : Colors.grey[400],
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     'Project Detail : ${project.description.isNotEmpty ? project.description : "No description available"}',
                     style: const TextStyle(

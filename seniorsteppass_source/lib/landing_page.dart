@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
+import 'screens/main_screen/main_screen.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -95,6 +96,8 @@ class LandingPage extends StatelessWidget {
                           'Find Project',
                           AppTheme.primaryTeal,
                           AppTheme.white,
+                          context,
+                          initialFilters: {},
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -103,6 +106,8 @@ class LandingPage extends StatelessWidget {
                           'Find Internship',
                           AppTheme.primaryTeal,
                           AppTheme.white,
+                          context,
+                          initialFilters: {},
                         ),
                       ),
                     ],
@@ -111,36 +116,100 @@ class LandingPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: _buildActionBtn('Software Engineer', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Software Engineer',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Software Engineer'},
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildActionBtn('Software Engineer', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Software Engineer',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Software Engineer'},
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: _buildActionBtn('Data Science', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Data Science',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Data Science'},
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildActionBtn('Data Science', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Data Science',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Data Science'},
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: _buildActionBtn('IOT', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'IOT',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Internet Of Thing'},
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildActionBtn('IOT', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'IOT',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Internet Of Thing'},
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: _buildActionBtn('Cyber Security', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Cyber Security',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Cyber Security'},
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildActionBtn('Cyber Security', AppTheme.darkYellow, AppTheme.primaryTeal)),
+                      Expanded(
+                        child: _buildActionBtn(
+                          'Cyber Security',
+                          AppTheme.darkYellow,
+                          AppTheme.primaryTeal,
+                          context,
+                          initialFilters: {'Cyber Security'},
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -188,23 +257,42 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionBtn(String title, Color bgColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          title,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            color: textColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+  Widget _buildActionBtn(
+    String title,
+    Color bgColor,
+    Color textColor,
+    BuildContext context,
+    {required Set<String> initialFilters}
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MainScreen(
+              initialIndex: 1,
+              projectFilters: initialFilters,
+            ),
           ),
-          textAlign: TextAlign.center,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              color: textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

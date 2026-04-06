@@ -155,6 +155,7 @@ final List<ProjectModel> mockProjects = [
     imageUrl:
         'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400',
     tags: ['Flutter', 'AI', 'Machine Learning', 'Education'],
+    categories: ['Software Engineer', 'Data Science'],
     teamMembers: [
       TeamMember(
         id: 'tm1',
@@ -186,6 +187,7 @@ final List<ProjectModel> mockProjects = [
     imageUrl:
         'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
     tags: ['Flutter', 'IoT', 'Real-time', 'Home Automation'],
+    categories: ['Internet Of Thing'],
     teamMembers: [
       TeamMember(
         id: 'tm4',
@@ -212,6 +214,7 @@ final List<ProjectModel> mockProjects = [
     imageUrl:
         'https://images.unsplash.com/photo-1523474253046-72967e0e0ed5?w=400',
     tags: ['React', 'Node.js', 'E-commerce', 'Payment Integration'],
+    categories: ['Software Engineer'],
     teamMembers: [
       TeamMember(
         id: 'tm6',
@@ -248,6 +251,7 @@ final List<ProjectModel> mockProjects = [
     imageUrl:
         'https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?w=400',
     tags: ['Flutter', 'Health Tech', 'Wearable', 'Social'],
+    categories: ['Data Science'],
     teamMembers: [
       TeamMember(
         id: 'tm10',
@@ -274,6 +278,7 @@ final List<ProjectModel> mockProjects = [
     imageUrl:
         'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400',
     tags: ['React Native', 'WebSocket', 'Security', 'Real-time'],
+    categories: ['Software Engineer', 'Cyber Security'],
     teamMembers: [
       TeamMember(
         id: 'tm12',

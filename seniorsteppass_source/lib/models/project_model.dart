@@ -37,6 +37,7 @@ class ProjectModel {
   final String author;
   final String imageUrl;
   final List<String> tags;
+  final List<String> categories;
   final List<TeamMember> teamMembers;
   final DateTime createdDate;
   final String status; // 'Active', 'Completed', 'Archived'
@@ -50,6 +51,7 @@ class ProjectModel {
     required this.author,
     required this.imageUrl,
     required this.tags,
+    required this.categories,
     required this.teamMembers,
     required this.createdDate,
     required this.status,
@@ -70,6 +72,7 @@ class ProjectModel {
       author: json['author'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
+      categories: List<String>.from(json['categories'] ?? []),
       teamMembers: membersList,
       createdDate: json['createdDate'] != null 
         ? DateTime.parse(json['createdDate']) 
@@ -89,6 +92,7 @@ class ProjectModel {
       'author': author,
       'imageUrl': imageUrl,
       'tags': tags,
+      'categories': categories,
       'teamMembers': teamMembers.map((e) => e.toJson()).toList(),
       'createdDate': createdDate.toIso8601String(),
       'status': status,
