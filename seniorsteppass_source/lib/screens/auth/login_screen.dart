@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'signup_screen.dart';
 import '../main_screen/main_screen.dart';
+import '../../loading_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,23 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo Text
-                const Text(
-                  'SENIOR',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryTeal,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const Text(
-                  'STEP PASS',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.darkYellow,
-                    letterSpacing: 1.2,
-                  ),
+                Image.asset(
+                  'assets/logo.png',
+                  height: 80,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 40),
                 
@@ -58,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Text(
                         'LOGIN',
                         style: TextStyle(
+                          fontFamily: 'Inter',
                           color: AppTheme.white,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -88,11 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
+                          // Login Handler รอ
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const MainScreen()),
-                            );
+                            _handleLogin(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.white,
@@ -103,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text(
                             'Login',
                             style: TextStyle(
+                              fontFamily: 'Inter',
                               color: AppTheme.primaryTeal,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -123,11 +111,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: RichText(
                           text: const TextSpan(
                             text: 'Don\'t have an account? ',
-                            style: TextStyle(color: AppTheme.white, fontSize: 13),
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: AppTheme.white,
+                              fontSize: 13,
+                            ),
                             children: [
                               TextSpan(
                                 text: 'Sign Up',
                                 style: TextStyle(
+                                  fontFamily: 'Inter',
                                   color: AppTheme.darkYellow,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -149,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF32A09D), // Adjusted lighter teal
+                      backgroundColor: AppTheme.info,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -158,6 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text(
                       'Admin Sign-In',
                       style: TextStyle(
+                        fontFamily: 'Inter',
                         color: AppTheme.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -188,15 +182,55 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(fontFamily: 'Inter', color: Colors.white),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+          hintStyle: TextStyle(
+            fontFamily: 'Inter',
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 14,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           suffixIcon: Icon(icon, color: Colors.white.withOpacity(0.7), size: 20),
         ),
       ),
     );
+  }
+
+  void _handleLogin(BuildContext context) {
+    // Simple validation - fields must not be empty
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      // Show error message
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Please enter username and password'),
+      //     backgroundColor: AppTheme.bad,
+      //     duration: Duration(seconds: 2),
+      //   ),
+      // );
+      return;
+    }
+
+    // Show loading screen
+    // ชั่วคราว
+    final navigator = Navigator.of(context);
+    navigator.pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const LoadingScreen(message: 'Signing in...'),
+      ),
+    );
+    // Navigator.of(context).pushReplacement(
+    //   MaterialPageRoute(
+    //     builder: (context) => const LoadingScreen(message: 'Signing in...'),
+    //   ),
+    // );
+
+    // Navigate to main screen after 2 seconds
+    Future.delayed(const Duration(seconds: 1), () {
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
+    });
   }
 }

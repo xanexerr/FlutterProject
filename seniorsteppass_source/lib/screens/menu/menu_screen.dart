@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../auth/login_screen.dart';
+import '../../contact_us_screen.dart';
+import '../../widgets/common_buttons.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -20,23 +22,25 @@ class MenuScreen extends StatelessWidget {
               const Text(
                 'Log out',
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: AppTheme.head,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Are you sure you want to log out?',
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 14,
-                  color: Colors.black87,
+                  color: AppTheme.head2,
                 ),
               ),
               const SizedBox(height: 20),
               Container(
                 height: 1,
-                color: Colors.grey.shade300,
+                color: AppTheme.head3,
               ),
               IntrinsicHeight(
                 child: Row(
@@ -57,7 +61,8 @@ class MenuScreen extends StatelessWidget {
                         child: const Text(
                           'Cancel',
                           style: TextStyle(
-                            color: Color(0xFFE53935), // Red
+                            fontFamily: 'Inter',
+                            color: Color(0xFFE53935),
                             fontSize: 16,
                           ),
                         ),
@@ -87,6 +92,7 @@ class MenuScreen extends StatelessWidget {
                         child: const Text(
                           'OK',
                           style: TextStyle(
+                            fontFamily: 'Inter',
                             color: AppTheme.primaryTeal,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -108,73 +114,19 @@ class MenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryTeal,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: Container(
-          color: AppTheme.lightYellow,
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 24,
-            right: 24,
-            bottom: 10,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  color: Colors.transparent, // Make entire area clickable
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.arrow_back_ios,
-                        color: AppTheme.primaryTeal,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.asset(
-                            '../../../assets/logo.png',
-                            height: 48,
-                            fit: BoxFit.contain,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      // เรียกใช้จาก common_widgets.dart
+      appBar: const CustomHeader(),
       body: Column(
         children: [
           // Contact US Header
-          Container(
-            width: double.infinity,
-            color: AppTheme.lightYellow,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const Center(
-              child: Text(
-                'Contact US',
-                style: TextStyle(
-                  color: AppTheme.primaryTeal,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          NavigationMenuItem(
+            title: 'Contact US',
+            destination: const ContactUsScreen(),
           ),
           
           Container(
             height: 1, // Divider below Contact US
-            color: Colors.grey.shade400,
+            color: AppTheme.head3,
           ),
           
           const Spacer(),
@@ -188,7 +140,7 @@ class MenuScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _showLogoutDialog(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE03A45), // Target Red Color
+                  backgroundColor: AppTheme.bad,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -197,7 +149,8 @@ class MenuScreen extends StatelessWidget {
                 child: const Text(
                   'Log out',
                   style: TextStyle(
-                    color: Colors.white,
+                    fontFamily: 'Inter',
+                    color: AppTheme.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

@@ -1,10 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import '../home/landing_page.dart';
-import '../project_main/project_main_screen.dart';
-import '../menu/menu_screen.dart';
+import '../../landing_page.dart';
+import '../internship/internship_list_screen.dart';
+import '../../widgets/common_buttons.dart';
+import '../project_main/project_main.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,10 +17,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const LandingPage(),
-    const ProjectMainScreen(), // Project Placeholder (Project Main)
-    const Scaffold(
-      body: Center(child: Text('Internship Placeholder')),
-    ), // Internship Placeholder
+    const ProjectMainScreen(),
+    const InternshipListScreen(),
     const Scaffold(
       body: Center(child: Text('Favorite Placeholder')),
     ), // Favorite Placeholder
@@ -33,54 +30,8 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: Container(
-          color: AppTheme.lightYellow,
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 24,
-            right: 24,
-            bottom: 10,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Image.asset(
-              //   '../../../assets/logo.png',
-              //   height: 48,
-              //   fit: BoxFit.contain,
-              // ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 0;
-                  });
-                },
-                child: Image.asset(
-                  '../../../assets/logo.png',
-                  height: 48,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.menu,
-                  size: 36,
-                  color: AppTheme.primaryTeal,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MenuScreen()),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      backgroundColor: AppTheme.white,
+      appBar: const MainHeader(),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         color: AppTheme.lightYellow,
