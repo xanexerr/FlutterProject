@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+// import 'package:seniorsteppass_source/database/db_helper.dart';
+import '../../database/db_helper.dart';
 import '../../theme/app_theme.dart';
 import 'signup_screen.dart';
 import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -198,39 +201,74 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin(BuildContext context) {
-    // Simple validation - fields must not be empty
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+  void _handleLogin(BuildContext context) async{
+    final String username = _usernameController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    // Validate input - fields must not be empty
+    if (username.isEmpty || password.isEmpty) {
       // Show error message
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //     content: Text('Please enter username and password'),
-      //     backgroundColor: AppTheme.bad,
-      //     duration: Duration(seconds: 2),
-      //   ),
-      // );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter username and password'),
+          backgroundColor: AppTheme.bad,
+          duration: Duration(seconds: 2),
+        ),
+      );
       return;
     }
 
     // Show loading screen
-    // ชั่วคราว
     final navigator = Navigator.of(context);
-    navigator.pushReplacement(
+    navigator.push(
       MaterialPageRoute(
-        builder: (context) => const LoadingScreen(message: 'Signing in...'),
+        builder: (context) => const LoadingScreen(message: 'Logging in...'),
       ),
     );
-    // Navigator.of(context).pushReplacement(
-    //   MaterialPageRoute(
-    //     builder: (context) => const LoadingScreen(message: 'Signing in...'),
-    //   ),
-    // );
 
-    // Navigate to main screen after 2 seconds
-    Future.delayed(const Duration(seconds: 1), () {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+    try {
+      // Attempt to login user using DBHelper
+      final dbHelper = DBHelper();
+      final user = await dbHelper.loginUser(username, password);
+
+      await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
+    
+      if (user != null) {
+        // Login successful, navigate to main screen
+        int userId = user['id']; 
+        String username = user['username']; 
+        print ('Login successful for user ID: $userId, username: $username');
+
+        navigator.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false, // Remove all previous routes
+        );
+
+      } else {
+        // Login failed, show error message and return to login screen
+        if (!mounted) return; 
+        navigator.pop();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid username or password'),
+            backgroundColor: AppTheme.bad,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+      // Handle any errors that occur during login
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $e'),
+          backgroundColor: AppTheme.bad,
+          duration: const Duration(seconds: 2),
+        ),
       );
-    });
+    }
+
   }
 }
