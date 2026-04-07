@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import 'login_screen.dart';
 import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
+import '../../database/db_helper.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -22,7 +23,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 60.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 60.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -33,10 +37,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Main Card
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 32.0,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryTeal,
                     borderRadius: BorderRadius.circular(16),
@@ -54,7 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // Username Field
                       _buildTextField(
                         controller: _usernameController,
@@ -62,7 +69,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         icon: Icons.person_outline,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Password Field
                       _buildTextField(
                         controller: _passwordController,
@@ -71,7 +78,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         isPassword: true,
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // Sign Up Button
                       SizedBox(
                         width: double.infinity,
@@ -98,13 +105,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Log In option
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
                           );
                         },
                         child: RichText(
@@ -163,39 +172,87 @@ class _SignUpScreenState extends State<SignUpScreen> {
             fontSize: 14,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          suffixIcon: Icon(icon, color: Colors.white.withOpacity(0.7), size: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
+          suffixIcon: Icon(
+            icon,
+            color: Colors.white.withOpacity(0.7),
+            size: 20,
+          ),
         ),
       ),
     );
   }
 
-  void _handleSignUp(BuildContext context) {
-    // Simple validation - fields must not be empty
-    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      // Show error message
+  void _handleSignUp(BuildContext context) async {
+    final String username = _usernameController.text.trim();
+    final String password = _passwordController.text.trim();
 
+    // Validate input - fields must not be empty
+    if (username.isEmpty || password.isEmpty) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter username and password'),
+          backgroundColor: AppTheme.bad,
+          duration: Duration(seconds: 2),
+        ),
+      );
       return;
     }
 
     // Show loading screen
     final navigator = Navigator.of(context);
-    navigator.pushReplacement(
+    navigator.push(
       MaterialPageRoute(
-        builder: (context) => const LoadingScreen(message: 'Signing in...'),
+        builder: (context) =>
+            const LoadingScreen(message: 'Creating account...'),
       ),
     );
-    // Navigator.of(context).pushReplacement(
-    //   MaterialPageRoute(
-    //     builder: (context) => const LoadingScreen(message: 'Signing in...'),
-    //   ),
-    // );
 
-    // Navigate to main screen after 2 seconds
-    Future.delayed(const Duration(seconds: 1), () {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+    try {
+      // Insert new user into database
+      final dbHelper = DBHelper();
+      final user = await dbHelper.insertUser(username, password);
+
+      await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
+
+      // Navigate to login screen
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully'),
+            backgroundColor: AppTheme.success,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false, // Remove all previous routes
       );
-    });
+      
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+      
+      String errorMessage = 'An error occurred $e';
+
+      if (e.toString().contains('UNIQUE constraint failed')) {
+        errorMessage = 'Username already exists. Please choose another.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: AppTheme.bad,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+    
   }
 }
