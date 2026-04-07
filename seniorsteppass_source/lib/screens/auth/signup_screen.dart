@@ -32,7 +32,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 // Logo Text
                 Image.asset(
-                  '../../../assets/logo.png',
+                  'assets/logo.png',
                   height: 80,
                   fit: BoxFit.contain,
                 ),
@@ -215,7 +215,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     try {
       // Insert new user into database
       final dbHelper = DBHelper();
-      final user = await dbHelper.insertUser(username, password);
+      final user = await dbHelper.insertUser(username: username, password: password);
 
       await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
 
