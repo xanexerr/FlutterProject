@@ -4,27 +4,34 @@ import '../../landing_page.dart';
 import '../internship/internship_list_screen.dart';
 import '../../widgets/common_buttons.dart';
 import '../project_main/project_main.dart';
+import '../project_main/favorites_screen.dart';
+import '../profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  final Set<String>? projectFilters;
+
+  const MainScreen({super.key, this.initialIndex = 0, this.projectFilters});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
-  final List<Widget> _pages = [
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  late final List<Widget> _pages = [
     const LandingPage(),
-    const ProjectMainScreen(),
+    ProjectMainScreen(initialFilters: widget.projectFilters),
     const InternshipListScreen(),
-    const Scaffold(
-      body: Center(child: Text('Favorite Placeholder')),
-    ), // Favorite Placeholder
-    const Scaffold(
-      body: Center(child: Text('Profile Placeholder')),
-    ), // Profile Placeholder
+    const FavoritesScreen(),
+    const ProfileScreen(), // Profile Screen
   ];
 
   @override
