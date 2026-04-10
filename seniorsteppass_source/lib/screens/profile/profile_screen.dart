@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
+import 'internship_review_form.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -571,17 +572,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
 
           // Icon
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: AppTheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.arrow_forward,
-              color: AppTheme.white,
-              size: 18,
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InternshipReviewForm(),
+                ),
+              );
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: AppTheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: AppTheme.white,
+                size: 18,
+              ),
             ),
           ),
         ],
