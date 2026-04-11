@@ -335,6 +335,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _showErrorSnackBar(context, 'Login failed: $errorMessage');
     }
 
-
   }
+
+  @override
+  void dispose() {  // Clean up controllers when the widget is disposed
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
 }
