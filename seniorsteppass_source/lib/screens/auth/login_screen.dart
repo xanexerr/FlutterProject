@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../database/db_helper.dart';
 import '../../theme/app_theme.dart';
 import 'signup_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
 
@@ -143,7 +144,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 200,
                   height: 44,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.info,
                       shape: RoundedRectangleBorder(

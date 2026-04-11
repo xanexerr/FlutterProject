@@ -31,22 +31,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5DD),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F5DD),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.primary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Favorites',
-          style: TextStyle(
-            color: AppTheme.head,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+
       body: Column(
         children: [
           // Toggle Buttons
