@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:seniorsteppass_source/database/db_helper.dart';
-import '../../database/db_helper.dart';
 import '../../theme/app_theme.dart';
 import 'signup_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
-
+// firebase auth and firestore
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,8 +16,19 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Error message state
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppTheme.bad,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,21 +37,23 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 60.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 60.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo Text
-                Image.asset(
-                  'assets/logo.png',
-                  height: 80,
-                  fit: BoxFit.contain,
-                ),
+                Image.asset('assets/logo.png', height: 80, fit: BoxFit.contain),
                 const SizedBox(height: 40),
-                
+
                 // Main Card
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 32.0,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryTeal,
                     borderRadius: BorderRadius.circular(16),
@@ -58,15 +71,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 30),
-                      
-                      // Username Field
+
+                      // Email Field
                       _buildTextField(
-                        controller: _usernameController,
-                        hintText: 'Username',
+                        controller: _emailController,
+                        hintText: 'Email',
                         icon: Icons.person_outline,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Password Field
                       _buildTextField(
                         controller: _passwordController,
@@ -75,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         isPassword: true,
                       ),
                       const SizedBox(height: 30),
-                      
+
                       // Login Button
                       SizedBox(
                         width: double.infinity,
@@ -83,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: ElevatedButton(
                           // Login Handler รอ
                           onPressed: () {
-                            _handleLogin(context);
+                            _handleLogin(context, isAdminRoute: false);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.white,
@@ -103,52 +116,59 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Sign Up option
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                          );
-                        },
-                        child: RichText(
-                          text: const TextSpan(
-                            text: 'Don\'t have an account? ',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              color: AppTheme.white,
-                              fontSize: 13,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'Sign Up',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  color: AppTheme.darkYellow,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     Navigator.pushReplacement(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) => const SignUpScreen(),
+                      //       ),
+                      //     );
+                      //   },
+                      //   child: RichText(
+                      //     text: const TextSpan(
+                      //       text: 'Don\'t have an account? ',
+                      //       style: TextStyle(
+                      //         fontFamily: 'Inter',
+                      //         color: AppTheme.white,
+                      //         fontSize: 13,
+                      //       ),
+                      //       children: [
+                      //         TextSpan(
+                      //           text: 'Sign Up',
+                      //           style: TextStyle(
+                      //             fontFamily: 'Inter',
+                      //             color: AppTheme.darkYellow,
+                      //             fontWeight: FontWeight.bold,
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Admin Sign-In Button
                 SizedBox(
                   width: 200,
                   height: 44,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-                      );
+                      _handleLogin(context, isAdminRoute: true);
+                      // Navigator.pushReplacement(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const AdminDashboardScreen(),
+                      //     // builder: (context) => const MainScreen(),
+                      //     // builder: (context) => const AdminLoginScreen(),
+                      //   ),
+                      // );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.info,
@@ -200,23 +220,41 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 14,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          suffixIcon: Icon(icon, color: Colors.white.withOpacity(0.7), size: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
+          suffixIcon: Icon(
+            icon,
+            color: Colors.white.withOpacity(0.7),
+            size: 20,
+          ),
         ),
       ),
     );
   }
 
-  void _handleLogin(BuildContext context) async{
-    final String username = _usernameController.text.trim();
+  void _handleLogin(BuildContext context, {required bool isAdminRoute}) async {
+    final String email = _emailController.text.trim();
     final String password = _passwordController.text.trim();
 
     // Validate input - fields must not be empty
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter username and password'),
+          content: Text('Please enter email and password'),
+          backgroundColor: AppTheme.bad,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address'),
           backgroundColor: AppTheme.bad,
           duration: Duration(seconds: 2),
         ),
@@ -233,48 +271,70 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
-      // Attempt to login user using DBHelper
-      final dbHelper = DBHelper();
-      final user = await dbHelper.loginUser(username, password);
+      // Attempt to login user using Firebase Authentication
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
-    
-      if (user != null) {
-        // Login successful, navigate to main screen
-        int userId = user['id']; 
-        String username = user['username']; 
-        print ('Login successful for user ID: $userId, username: $username');
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      
+      if (!mounted) return;
+      Navigator.pop(context); // Remove loading screen
 
-        navigator.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-          (route) => false, // Remove all previous routes
-        );
+      // Login successful, check user role and navigate accordingly
+      if (userQuery.docs.isNotEmpty) {
+        String role = userQuery.docs.first['role'] ?? 'User';
+
+        if (isAdminRoute){
+          if (role == 'Admin') {
+            // Admin login successful
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+              (route) => false, // Remove all previous routes
+            );
+          } else {
+            // Not an admin, show error and return to login
+            await FirebaseAuth.instance.signOut();
+            _showErrorSnackBar(context, 'You do not have admin access.');
+            return;
+          }
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Remove all previous routes
+          );
+        }
 
       } else {
-        // Login failed, show error message and return to login screen
-        if (!mounted) return; 
-        navigator.pop();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid username or password'),
-            backgroundColor: AppTheme.bad,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        await FirebaseAuth.instance.signOut();
+        _showErrorSnackBar(context, 'User data not found. Please contact support.');
+        return;
       }
+
     } catch (e) {
       if (!mounted) return;
-      navigator.pop();
-      // Handle any errors that occur during login
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred: $e'),
-          backgroundColor: AppTheme.bad,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      Navigator.pop(context); // Remove loading screen
+
+      String errorMessage = 'An unexpected error occurred. Please try again.';
+
+      if (e is FirebaseAuthException) {
+        if (e.code == 'user-not-found' ||
+            e.code == 'wrong-password' ||
+            e.code == 'invalid-email') {
+          errorMessage = 'Invalid email or password. Please try again.';
+        }
+      }
+      
+      _showErrorSnackBar(context, 'Login failed: $errorMessage');
     }
+
 
   }
 }

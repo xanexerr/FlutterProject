@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart';
-import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
-import '../../database/db_helper.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -212,47 +210,47 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
 
-    try {
-      // Insert new user into database
-      final dbHelper = DBHelper();
-      final user = await dbHelper.insertUser(username, password);
+    // try {
+    //   // Insert new user into database
+    //   final dbHelper = DBHelper();
+    //   final user = await dbHelper.insertUser(username, password);
 
-      await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
+    //   await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
 
-      // Navigate to login screen
-      if (!mounted) return;
+    //   // Navigate to login screen
+    //   if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully'),
-            backgroundColor: AppTheme.success,
-            duration: Duration(seconds: 2),
-          ),
-        );
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //       const SnackBar(
+    //         content: Text('Account created successfully'),
+    //         backgroundColor: AppTheme.success,
+    //         duration: Duration(seconds: 2),
+    //       ),
+    //     );
 
-      navigator.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false, // Remove all previous routes
-      );
+    //   navigator.pushAndRemoveUntil(
+    //     MaterialPageRoute(builder: (context) => const LoginScreen()),
+    //     (route) => false, // Remove all previous routes
+    //   );
       
-    } catch (e) {
-      if (!mounted) return;
-      navigator.pop();
+    // } catch (e) {
+    //   if (!mounted) return;
+    //   navigator.pop();
       
-      String errorMessage = 'An error occurred $e';
+    //   String errorMessage = 'An error occurred $e';
 
-      if (e.toString().contains('UNIQUE constraint failed')) {
-        errorMessage = 'Username already exists. Please choose another.';
-      }
+    //   if (e.toString().contains('UNIQUE constraint failed')) {
+    //     errorMessage = 'Username already exists. Please choose another.';
+    //   }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: AppTheme.bad,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text(errorMessage),
+    //       backgroundColor: AppTheme.bad,
+    //       duration: const Duration(seconds: 2),
+    //     ),
+    //   );
+    // }
     
   }
 }
