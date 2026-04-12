@@ -7,6 +7,7 @@ class UserModel {
   final String? profilePic;
   final String email;
   final String? bio;
+  final List<dynamic>? intern_list;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     this.profilePic,
     required this.email,
     this.bio,
+    this.intern_list,
   });
 
   // Convert from JSON
@@ -30,6 +32,7 @@ class UserModel {
       profilePic: json['profilePic'],
       email: json['email'] ?? '',
       bio: json['bio']?.toString(),
+      intern_list: json['intern_list'] as List<dynamic>?,
     );
   }
 
@@ -43,6 +46,8 @@ class UserModel {
       'profilePic': profilePic,
       'email': email,
       'bio': bio,
+      'intern_list': intern_list,
+
     };
   }
 }

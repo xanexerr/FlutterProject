@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:seniorsteppass_source/models/company_model.dart';
 import '../models/user_model.dart';
 import '../models/project_model.dart';
 import '../models/review_model.dart';
@@ -38,5 +39,16 @@ class DatabaseService {
     return query.docs
         .map((doc) => ReviewModel.fromJson(doc.data(), doc.id))
         .toList();
+  }
+
+  Future<String?> getCompanyLogo(String companyName) async {
+    var query = await _db
+      .collection('internships')
+      .where('company_name', isEqualTo: companyName)
+      .get();
+    if (query.docs.isNotEmpty) {
+      return query.docs.first.data()['logo_url']; //
+    }
+    return null;
   }
 }

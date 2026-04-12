@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:seniorsteppass_source/models/project_model.dart';
+import 'package:seniorsteppass_source/models/review_model.dart';
 import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
@@ -39,11 +40,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         data.student_id,
       );
 
-      setState(() {
-        userData = data.toJson();
-        projects = projectData.map((p) => p.toJson()).toList();
-        isLoading = false;
-      });
+      List<Map<String, dynamic>> resolvedInternships = [];
+
+      if (data.intern_list != null && data.intern_list!.isNotEmpty) {
+        resolvedInternships = await Future.wait(
+          data.intern_list!.map((item) async {
+            final companyName = item['company'] ?? '';
+            final logo = await _dbService.getCompanyLogo(companyName);
+            return {
+              'company': companyName,
+              'department': item['role'] ?? 'Intern',
+              'logo_url': logo,
+            };
+          }),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          userData = data.toJson();
+          projects = projectData.map((p) => p.toJson()).toList();
+          internships = resolvedInternships;
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -499,7 +519,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // Project Image
           ClipRRect(
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12), right: Radius.circular(12)),
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(12),
+              right: Radius.circular(12),
+            ),
             child: Image.network(
               project['image_url'] ?? '',
               width: 160,
@@ -566,17 +589,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               color: AppTheme.head,
               borderRadius: BorderRadius.circular(100),
+              image: internship['logo_url'] != null
+                  ? DecorationImage(
+                      image: NetworkImage(internship['logo_url']),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: const Center(
-              child: Text(
-                'LOGO',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.white,
-                ),
-              ),
-            ),
+            child:
+                (internship['logo_url'] == null || internship['logo_url'] == "")
+                ? const Center(
+                    child: Text(
+                      'LOGO',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
 
