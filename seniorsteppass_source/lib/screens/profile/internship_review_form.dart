@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
@@ -133,12 +135,31 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate() && _rating > 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Review submitted successfully!')),
-                      );
-                      Navigator.pop(context);
+                      final reviewData = {
+                        'company_name': widget.companyName,
+                        'department': widget.role,
+                        'rating': _rating,
+                        'review_text': _reviewController.text,
+                        'user_id': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
+                        'created_at': Timestamp.now(),
+                      };
+
+                      try {
+                        await FirebaseFirestore.instance.collection('reviews').add(reviewData);
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Review submitted successfully!')),
+                          );
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to submit review. Please try again later.')),
+                        );
+                      }
                     } else if (_rating == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Please provide a rating')),

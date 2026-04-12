@@ -51,4 +51,10 @@ class DatabaseService {
     }
     return null;
   }
+
+  Future<void> addReview(ReviewModel review) async {
+    await _db.collection('reviews').add(review.toJson());
+  }
+
+
 }
