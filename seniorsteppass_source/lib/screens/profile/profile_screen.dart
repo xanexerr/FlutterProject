@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:seniorsteppass_source/models/project_model.dart';
 import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
 import 'internship_review_form.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../models/user_model.dart';
-import '../../models/project_model.dart';
-import '../../models/review_model.dart';
 import '../../services/database_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,31 +15,46 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // ตอนดึงงข้อมูลมาจาก API หรือฐานข้อมูลจริงๆ ให้แทนที่ List<Map<String, String>> ด้วยโมเดลข้อมูลจริง และดึงข้อมูลมาแสดงแทนการใช้ mock data นี้
-  List<Map<String, String>> projects = [
-    {
-      'name': 'Project Name 1',
-      'detail': 'Project Detail : Lorem ipsum dolor sit amet, consectetur adipiscing elit...'
-    },
-    {
-      'name': 'Project Name 2',
-      'detail': 'Another project detail : Sed do eiusmod tempor incididunt ut labore et dolore...'
-    },
-  ];
+  final DatabaseService _dbService = DatabaseService();
 
-  List<Map<String, String>> internships = [
-    {'company': 'Company Name 1', 'department': 'Department 1'},
-    {'company': 'Company Name 2', 'department': 'Department 2'},
-  ];
+  Map<String, dynamic> userData = {};
+  List<Map<String, dynamic>> projects = [];
+  List<Map<String, dynamic>> internships = [];
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.email != null) {
+      // Fetch user data and projects from Firestore
+      final data = await _dbService.getUserData(user.email!);
+      // Fetch projects by student ID
+      final List<ProjectModel> projectData = await _dbService.getUserProjects(
+        data.student_id,
+      );
+
+      setState(() {
+        userData = data.toJson();
+        projects = projectData.map((p) => p.toJson()).toList();
+        isLoading = false;
+      });
+    }
+  }
 
   bool get hasProject => projects.isNotEmpty;
   bool get hasInternship => internships.isNotEmpty;
 
-  // final DatabaseService _dbService = DatabaseService();
-  // final String currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-
   @override
   Widget build(BuildContext context) {
+    // Show loading indicator while fetching data
+    if (isLoading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       backgroundColor: AppTheme.paleYellow,
@@ -73,25 +86,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Profile Picture
+                    // Profile Picture from Firebase Auth or default icon
                     Container(
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
                         color: AppTheme.lightGrey,
                         borderRadius: BorderRadius.circular(8),
+                        image: userData['profilePic'] != null
+                            ? DecorationImage(
+                                image: NetworkImage(userData['profilePic']),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: AppTheme.primary,
-                      ),
+                      child: userData['profilePic'] == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: AppTheme.primary,
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 16),
 
                     // Name
-                    const Text(
-                      'FIRSTNAME LASTNAME',
+                    Text(
+                      userData['full_name']?.toUpperCase() ?? 'N/A',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -102,16 +123,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
 
                     // ID
-                    const Text(
-                      '6787000 ITDS/B',
+                    Text(
+                      userData['student_id'] ?? 'N/A',
                       style: TextStyle(fontSize: 12, color: Colors.white70),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
 
                     // Faculty
-                    const Text(
-                      'FACULTY OF INFORMATION AND COMMUNICATION TECHNOLOGY',
+                    Text(
+                      userData['faculty']?.toUpperCase() ?? 'N/A',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.white70,
@@ -168,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (hasProject) ...[
                       ...projects.asMap().entries.map((entry) {
                         int index = entry.key;
-                        Map<String, String> project = entry.value;
+                        Map<String, dynamic> project = entry.value;
                         return Column(
                           key: ValueKey(index),
                           children: [
@@ -262,7 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (hasInternship) ...[
                       ...internships.asMap().entries.map((entry) {
                         int index = entry.key;
-                        Map<String, String> internship = entry.value;
+                        Map<String, dynamic> internship = entry.value;
                         return Column(
                           key: ValueKey('internship_$index'),
                           children: [
@@ -391,9 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // Header
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                           
-                            ],
+                            children: [],
                           ),
                           const SizedBox(height: 20),
                           Container(
@@ -438,9 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      onTap: () {
-                                        
-                                      },
+                                      onTap: () {},
                                       child: const Center(
                                         child: Text(
                                           'Request New Workplace',
@@ -471,7 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Build Project Card Widget
-  Widget _buildProjectCard(Map<String, String> project) {
+  Widget _buildProjectCard(Map<String, dynamic> project) {
     return Container(
       padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
@@ -481,17 +498,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         children: [
           // Project Image
-          Container(
-            width: 160,
-            height: 90,
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
+          ClipRRect(
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12), right: Radius.circular(12)),
+            child: Image.network(
+              project['image_url'] ?? '',
+              width: 160,
+              height: 90,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 160,
+                  height: 90,
+                  color: AppTheme.lightGrey,
+                  child: const Icon(Icons.image, color: AppTheme.head),
+                );
+              },
             ),
-            child: const Icon(Icons.image, color: AppTheme.head),
           ),
           const SizedBox(width: 12),
 
@@ -501,7 +523,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  project['name'] ?? 'Project Name',
+                  project['title'] ?? 'Project Name',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -510,7 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  project['detail'] ?? 'Project Detail',
+                  project['description'] ?? 'Project Detail',
                   style: const TextStyle(
                     fontSize: 10,
                     color: AppTheme.head3,
@@ -528,7 +550,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Build Internship Card Widget
-  Widget _buildInternshipCard(Map<String, String> internship) {
+  Widget _buildInternshipCard(Map<String, dynamic> internship) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

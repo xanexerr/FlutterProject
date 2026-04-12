@@ -7,10 +7,15 @@ class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // collect user data
-  Stream<UserModel> streamUser(String uid) {
-    return _db.collection('users').doc(uid).snapshots().map((snap) {
-      return UserModel.fromJson(snap.data() as Map<String, dynamic>, snap.id);
-    });
+  Future<UserModel> getUserData(String email) async {
+    var query = await _db.collection('users').where('email', isEqualTo: email).get();
+
+    if (query.docs.isNotEmpty) {
+      var doc = query.docs.first;
+      return UserModel.fromJson(doc.data(), doc.id);
+    } else {
+      throw Exception("User data not found for email: $email");
+    }
   }
 
   // collect project data
