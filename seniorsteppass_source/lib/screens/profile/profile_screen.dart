@@ -3,6 +3,11 @@ import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
 import 'internship_review_form.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/user_model.dart';
+import '../../models/project_model.dart';
+import '../../models/review_model.dart';
+import '../../services/database_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,8 +37,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool get hasProject => projects.isNotEmpty;
   bool get hasInternship => internships.isNotEmpty;
 
+  // final DatabaseService _dbService = DatabaseService();
+  // final String currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: AppTheme.paleYellow,
       body: SingleChildScrollView(

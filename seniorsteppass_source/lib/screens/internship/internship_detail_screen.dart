@@ -37,7 +37,7 @@ class InternshipDetailScreen extends StatelessWidget {
                       color: AppTheme.lightGrey,
                     ),
                     child: Image.network(
-                      company.logoUrl,
+                      company.logo_url,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
@@ -54,7 +54,7 @@ class InternshipDetailScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   // Company Info
                   Text(
-                    company.name,
+                    company.company_name,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -183,7 +183,7 @@ class InternshipDetailScreen extends StatelessWidget {
                                   MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  review.reviewerName,
+                                  review.reviewer_id,
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -220,7 +220,7 @@ class InternshipDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              review.content,
+                              review.comment,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.head2,

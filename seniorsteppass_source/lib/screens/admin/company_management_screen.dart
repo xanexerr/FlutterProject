@@ -21,7 +21,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
 
   void _showCompanyModal([CompanyModel? company]) {
     final isEditing = company != null;
-    final nameCtrl = TextEditingController(text: company?.name ?? '');
+    final nameCtrl = TextEditingController(text: company?.company_name ?? '');
     final deptCtrl = TextEditingController(text: company?.department ?? '');
     final descCtrl = TextEditingController(text: company?.description ?? '');
     final locationCtrl = TextEditingController(text: company?.location ?? '');
@@ -82,9 +82,9 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
                         if (index != -1) {
                           final updatedCompany = CompanyModel(
                             id: company.id,
-                            name: nameCtrl.text,
+                            company_name: nameCtrl.text,
                             department: deptCtrl.text,
-                            logoUrl: company.logoUrl,
+                            logo_url: company.logo_url,
                             description: descCtrl.text,
                             overallRating: company.overallRating,
                             reviewCount: company.reviewCount,
@@ -100,9 +100,9 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
                       } else {
                         final newCompany = CompanyModel(
                           id: 'c_${DateTime.now().millisecondsSinceEpoch}',
-                          name: nameCtrl.text,
+                          company_name: nameCtrl.text,
                           department: deptCtrl.text,
-                          logoUrl: 'https://via.placeholder.com/150',
+                          logo_url: 'https://via.placeholder.com/150',
                           description: descCtrl.text,
                           overallRating: 0.0,
                           reviewCount: 0,
@@ -135,7 +135,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Company', style: TextStyle(color: AppTheme.bad)),
-        content: Text('Are you sure you want to delete "${company.name}"?'),
+        content: Text('Are you sure you want to delete "${company.company_name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -193,7 +193,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            company.name,
+                            company.company_name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

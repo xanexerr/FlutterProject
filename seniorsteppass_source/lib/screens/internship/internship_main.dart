@@ -57,7 +57,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
         // Combined filter + search
         displayedResults = mockCompanies.where((company) {
           bool matchesFilter = selectedFilters.contains(company.department);
-          bool matchesSearch = company.name
+          bool matchesSearch = company.company_name
                   .toLowerCase()
                   .contains(searchText.toLowerCase()) ||
               company.description.toLowerCase().contains(searchText.toLowerCase());
@@ -72,7 +72,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
         // Search only
         displayedResults = mockCompanies
             .where((company) =>
-                company.name.toLowerCase().contains(searchText.toLowerCase()) ||
+                company.company_name.toLowerCase().contains(searchText.toLowerCase()) ||
                 company.description
                     .toLowerCase()
                     .contains(searchText.toLowerCase()))

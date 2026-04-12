@@ -2,9 +2,9 @@ import 'review_model.dart';
 
 class CompanyModel {
   final String id;
-  final String name;
+  final String company_name;
   final String department;
-  final String logoUrl;
+  final String logo_url;
   final String description;
   final double overallRating;
   final int reviewCount;
@@ -14,48 +14,45 @@ class CompanyModel {
 
   CompanyModel({
     required this.id,
-    required this.name,
+    required this.company_name,
     required this.department,
-    required this.logoUrl,
+    required this.logo_url,
     required this.description,
     required this.overallRating,
     required this.reviewCount,
-    required this.reviews,
+    // required this.reviews,
+    this.reviews = const [],
     required this.location,
     required this.website,
   });
 
   // Convert from JSON
-  factory CompanyModel.fromJson(Map<String, dynamic> json) {
-    var reviewsList = (json['reviews'] as List<dynamic>?)
-        ?.map((e) => ReviewModel.fromJson(e as Map<String, dynamic>))
-        .toList() ?? [];
-
+  factory CompanyModel.fromJson(Map<String, dynamic> json, String docId) {
     return CompanyModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
+      id: docId,
+      company_name: json['company_name'] ?? '',
       department: json['department'] ?? '',
-      logoUrl: json['logoUrl'] ?? '',
+      logo_url: json['logo_url'] ?? '',
       description: json['description'] ?? '',
       overallRating: (json['overallRating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] ?? 0,
-      reviews: reviewsList,
+      // reviews: reviewsList,
       location: json['location'] ?? '',
       website: json['website'] ?? '',
+      reviews: [],
     );
   }
 
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
+      'company_name': company_name,
       'department': department,
-      'logoUrl': logoUrl,
+      'logo_url': logo_url,
       'description': description,
       'overallRating': overallRating,
       'reviewCount': reviewCount,
-      'reviews': reviews.map((e) => e.toJson()).toList(),
+      // 'reviews': reviews.map((e) => e.toJson()).toList(),
       'location': location,
       'website': website,
     };

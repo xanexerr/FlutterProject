@@ -1,45 +1,47 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ReviewModel {
   final String id;
-  final String reviewerName;
+  final String reviewer_id;
   final String position;
-  final String content;
+  final String comment;
   final double rating;
   final List<String> techStack;
-  final DateTime date;
+  final DateTime timestamp;
 
   ReviewModel({
     required this.id,
-    required this.reviewerName,
+    required this.reviewer_id,
     required this.position,
-    required this.content,
+    required this.comment,
     required this.rating,
     required this.techStack,
-    required this.date,
+    required this.timestamp,
   });
 
   // Convert from JSON
-  factory ReviewModel.fromJson(Map<String, dynamic> json) {
+  factory ReviewModel.fromJson(Map<String, dynamic> json, String docId) {
     return ReviewModel(
-      id: json['id'] ?? '',
-      reviewerName: json['reviewerName'] ?? '',
+      id: docId,
+      reviewer_id: json['reviewer_id'] ?? '',
       position: json['position'] ?? '',
-      content: json['content'] ?? '',
+      comment: json['comment'] ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       techStack: List<String>.from(json['techStack'] ?? []),
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
-    );
+      timestamp: json['timestamp'] != null 
+                ? (json['timestamp'] as Timestamp).toDate() 
+                : DateTime.now(),    );
   }
 
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'reviewerName': reviewerName,
+      'reviewer_id': reviewer_id,
       'position': position,
-      'content': content,
+      'comment': comment,
       'rating': rating,
       'techStack': techStack,
-      'date': date.toIso8601String(),
+      'timestamp': Timestamp.fromDate(timestamp),
     };
   }
 }

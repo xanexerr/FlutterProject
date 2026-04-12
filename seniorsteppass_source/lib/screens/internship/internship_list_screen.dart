@@ -32,7 +32,7 @@ class InternshipListScreen extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: ItemCard(
-                      title: company.name,
+                      title: company.company_name,
                       subtitle: '${company.department} • ${company.overallRating}⭐',
                       trailing: SizedBox(
                         width: 80,
@@ -63,7 +63,7 @@ class InternshipListScreen extends StatelessWidget {
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Tapped: ${company.name}'),
+                            content: Text('Tapped: ${company.company_name}'),
                             duration: const Duration(seconds: 1),
                           ),
                         );
