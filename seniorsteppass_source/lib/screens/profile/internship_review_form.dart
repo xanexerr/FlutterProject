@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class InternshipReviewForm extends StatefulWidget {
-  const InternshipReviewForm({super.key});
+  final String companyName;
+  final String role;
+
+  const InternshipReviewForm({
+    super.key,
+    required this.companyName, 
+    required this.role
+  });
 
   @override
   State<InternshipReviewForm> createState() => _InternshipReviewFormState();
@@ -48,14 +55,14 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
               const Text('Company Name', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: 'Company Name', // ไว้รับค่าจากหน้า Profile อีกที
+                initialValue: widget.companyName, // ไว้รับค่าจากหน้า Profile อีกที
                 readOnly: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppTheme.white,
+                  fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
                   ),
                 ),
               ),
@@ -64,14 +71,15 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
               const Text('Role / Department', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: 'Department', // ไว้รับค่าจากหน้า Profile อีกที
+                initialValue: widget.role, // ไว้รับค่าจากหน้า Profile อีกที
                 readOnly: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppTheme.white,
+                  fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                    
                   ),
                 ),
               ),
