@@ -25,7 +25,7 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
       if (company.reviews.isNotEmpty) {
         for (var review in company.reviews) {
           _moderationList.add({
-            'company': company.name,
+            'company': company.company_name,
             'review': review,
             'status': 'Pending', // Pending, Approved, Hidden
           });
@@ -97,7 +97,7 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('Reviewer: ${review.reviewerName}', style: const TextStyle(fontSize: 14)),
+                  Text('Reviewer: ${review.reviewer_id}', style: const TextStyle(fontSize: 14)),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -114,7 +114,7 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '"${review.content}"',
+                      '"${review.comment}"',
                       style: const TextStyle(fontStyle: FontStyle.italic, color: AppTheme.head2),
                     ),
                   ),

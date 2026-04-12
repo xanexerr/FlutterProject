@@ -22,8 +22,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _showUserModal([UserModel? user]) {
     final isEditing = user != null;
-    final nameCtrl = TextEditingController(text: user?.name ?? '');
-    final studentIdCtrl = TextEditingController(text: user?.studentId ?? '');
+    final nameCtrl = TextEditingController(text: user?.full_name ?? '');
+    final studentIdCtrl = TextEditingController(text: user?.student_id ?? '');
     final facultyCtrl = TextEditingController(text: user?.faculty ?? '');
     final emailCtrl = TextEditingController(text: user?.email ?? '');
     String selectedRole = user?.role ?? 'User';
@@ -95,8 +95,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         if (index != -1) {
                           final updatedUser = UserModel(
                             id: user.id,
-                            name: nameCtrl.text,
-                            studentId: studentIdCtrl.text,
+                            full_name: nameCtrl.text,
+                            student_id: studentIdCtrl.text,
                             faculty: facultyCtrl.text,
                             role: selectedRole,
                             email: emailCtrl.text,
@@ -110,8 +110,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       } else {
                         final newUser = UserModel(
                           id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          name: nameCtrl.text,
-                          studentId: studentIdCtrl.text,
+                          full_name: nameCtrl.text,
+                          student_id: studentIdCtrl.text,
                           faculty: facultyCtrl.text,
                           role: selectedRole,
                           email: emailCtrl.text,
@@ -143,7 +143,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User', style: TextStyle(color: AppTheme.bad)),
-        content: Text('Are you sure you want to delete ${user.name}? This action cannot be undone.'),
+        content: Text('Are you sure you want to delete ${user.full_name}? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -202,7 +202,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.studentId.isNotEmpty ? user.studentId : user.id,
+                          user.student_id.isNotEmpty ? user.student_id : user.id,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryTeal,
@@ -212,7 +212,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            user.name,
+                            user.full_name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

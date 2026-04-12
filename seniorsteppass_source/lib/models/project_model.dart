@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class TeamMember {
   final String id;
   final String name;
@@ -14,9 +16,9 @@ class TeamMember {
   factory TeamMember.fromJson(Map<String, dynamic> json) {
     return TeamMember(
       id: json['id'] ?? '',
-      name: json['name'] ?? '',
+      name: '',
       role: json['role'] ?? '',
-      profilePic: json['profilePic'],
+      profilePic: null,
     );
   }
 
@@ -34,12 +36,12 @@ class ProjectModel {
   final String id;
   final String title;
   final String description;
-  final String author;
-  final String imageUrl;
+  final String owner_id;
+  final String image_url;
   final List<String> tags;
   final List<String> categories;
-  final List<TeamMember> teamMembers;
-  final DateTime createdDate;
+  final List<TeamMember> members;
+  final DateTime timestamp;
   final String status; // 'Active', 'Completed', 'Archived'
   final int views;
   final int likes;
@@ -48,34 +50,34 @@ class ProjectModel {
     required this.id,
     required this.title,
     required this.description,
-    required this.author,
-    required this.imageUrl,
+    required this.owner_id,
+    required this.image_url,
     required this.tags,
     required this.categories,
-    required this.teamMembers,
-    required this.createdDate,
+    required this.members,
+    required this.timestamp,
     required this.status,
     required this.views,
     required this.likes,
   });
 
   // Convert from JSON
-  factory ProjectModel.fromJson(Map<String, dynamic> json) {
-    var membersList = (json['teamMembers'] as List<dynamic>?)
+  factory ProjectModel.fromJson(Map<String, dynamic> json, String docId) {
+    var membersList = (json['members'] as List<dynamic>?)
         ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
         .toList() ?? [];
 
     return ProjectModel(
-      id: json['id'] ?? '',
+      id: docId,
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      author: json['author'] ?? '',
-      imageUrl: json['imageUrl'] ?? '',
+      owner_id: json['owner_id'] ?? '',
+      image_url: json['image_url'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
       categories: List<String>.from(json['categories'] ?? []),
-      teamMembers: membersList,
-      createdDate: json['createdDate'] != null 
-        ? DateTime.parse(json['createdDate']) 
+      members: membersList,
+      timestamp: json['timestamp'] != null 
+        ? (json['timestamp'] as Timestamp).toDate() 
         : DateTime.now(),
       status: json['status'] ?? 'Active',
       views: json['views'] ?? 0,
@@ -86,15 +88,14 @@ class ProjectModel {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'title': title,
       'description': description,
-      'author': author,
-      'imageUrl': imageUrl,
+      'owner_id': owner_id,
+      'image_url': image_url,
       'tags': tags,
       'categories': categories,
-      'teamMembers': teamMembers.map((e) => e.toJson()).toList(),
-      'createdDate': createdDate.toIso8601String(),
+      'members': members.map((e) => e.toJson()).toList(),
+      'timestamp': timestamp.toIso8601String(),
       'status': status,
       'views': views,
       'likes': likes,

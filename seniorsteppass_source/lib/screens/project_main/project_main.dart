@@ -3,6 +3,8 @@ import '../../models/mock_data.dart';
 import '../../models/favorites_manager.dart';
 import 'project_detail_screen.dart';
 import 'favorites_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/project_model.dart';
 
 class ProjectMainScreen extends StatefulWidget {
   final Set<String>? initialFilters;
@@ -20,6 +22,10 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
   bool isSearchActive = false;
   bool isFilterActive = false;
   final FavoritesManager _favoritesManager = FavoritesManager();
+  // Firestore reference for projects collection
+  final CollectionReference projectsRef = FirebaseFirestore.instance.collection(
+    'projects',
+  );
 
   final List<String> filterOptions = [
     'Software Engineer',
@@ -42,37 +48,52 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
     super.dispose();
   }
 
-  void _updateDisplay() {
+  List<ProjectModel> allProjectsFromFirestore = [];
+
+  void _updateDisplay() async {
+    // Fetch projects from Firestore
+    final img = await FirebaseFirestore.instance.collection('projects').get();
+    final allProjects = img.docs;
+
     setState(() {
-      String searchText = _searchController.text.trim();
+      String searchText = _searchController.text.trim().toLowerCase();
       isSearchActive = searchText.isNotEmpty;
       isFilterActive = selectedFilters.isNotEmpty;
 
       if (isFilterActive && isSearchActive) {
         // Combined filter + search
         displayedResults = mockProjects.where((project) {
-          bool matchesFilter =
-              project.categories.any((cat) => selectedFilters.contains(cat));
-          bool matchesSearch = project.title
-                  .toLowerCase()
-                  .contains(searchText.toLowerCase()) ||
-              project.description.toLowerCase().contains(searchText.toLowerCase());
+          bool matchesFilter = project.categories.any(
+            (cat) => selectedFilters.contains(cat),
+          );
+          bool matchesSearch =
+              project.title.toLowerCase().contains(searchText.toLowerCase()) ||
+              project.description.toLowerCase().contains(
+                searchText.toLowerCase(),
+              );
           return matchesFilter && matchesSearch;
         }).toList();
       } else if (isFilterActive) {
         // Filter only
         displayedResults = mockProjects
-            .where((project) =>
-                project.categories.any((cat) => selectedFilters.contains(cat)))
+            .where(
+              (project) => project.categories.any(
+                (cat) => selectedFilters.contains(cat),
+              ),
+            )
             .toList();
       } else if (isSearchActive) {
         // Search only
         displayedResults = mockProjects
-            .where((project) =>
-                project.title.toLowerCase().contains(searchText.toLowerCase()) ||
-                project.description
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()))
+            .where(
+              (project) =>
+                  project.title.toLowerCase().contains(
+                    searchText.toLowerCase(),
+                  ) ||
+                  project.description.toLowerCase().contains(
+                    searchText.toLowerCase(),
+                  ),
+            )
             .toList();
       } else {
         // No search/filter - show home
@@ -147,8 +168,10 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                           child: const Center(
                             child: Text(
                               'All',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -184,10 +207,7 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                   child: Center(
                     child: Text(
                       'No results found',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                   ),
                 )
@@ -198,13 +218,10 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                     vertical: 12.0,
                   ),
                   child: Column(
-                    children: List.generate(
-                      displayedResults.length,
-                      (index) {
-                        final project = displayedResults[index];
-                        return _buildSearchResultCard(project, context);
-                      },
-                    ),
+                    children: List.generate(displayedResults.length, (index) {
+                      final project = displayedResults[index];
+                      return _buildSearchResultCard(project, context);
+                    }),
                   ),
                 ),
 
@@ -313,16 +330,11 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
               child: Container(
                 width: double.infinity,
                 height: 150,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFD9D9D9),
-                ),
+                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
                 child: const Center(
                   child: Text(
                     'image',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF999999),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
                   ),
                 ),
               ),
@@ -413,16 +425,11 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
               child: Container(
                 width: double.infinity,
                 height: 150,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFD9D9D9),
-                ),
+                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
                 child: const Center(
                   child: Text(
                     'image',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF999999),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
                   ),
                 ),
               ),
@@ -542,8 +549,10 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                     ...filterOptions.map((option) {
                       final isSelected = selectedFilters.contains(option);
                       return Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                         child: GestureDetector(
                           onTap: () {
                             setStateDialog(() {
@@ -557,7 +566,9 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(24),

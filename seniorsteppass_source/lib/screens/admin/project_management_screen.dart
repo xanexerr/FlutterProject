@@ -23,7 +23,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
     final isEditing = project != null;
     final titleCtrl = TextEditingController(text: project?.title ?? '');
     final descCtrl = TextEditingController(text: project?.description ?? '');
-    final authorCtrl = TextEditingController(text: project?.author ?? '');
+    final authorCtrl = TextEditingController(text: project?.owner_id ?? '');
     String selectedStatus = project?.status ?? 'Active';
 
     showDialog(
@@ -90,12 +90,12 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                             id: project.id,
                             title: titleCtrl.text,
                             description: descCtrl.text,
-                            author: authorCtrl.text,
-                            imageUrl: project.imageUrl,
+                            owner_id: authorCtrl.text,
+                            image_url: project.image_url,
                             tags: project.tags,
                             categories: project.categories,
-                            teamMembers: project.teamMembers,
-                            createdDate: project.createdDate,
+                            members: project.members,
+                            timestamp: project.timestamp,
                             status: selectedStatus,
                             views: project.views,
                             likes: project.likes,
@@ -110,12 +110,12 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                           id: 'p_${DateTime.now().millisecondsSinceEpoch}',
                           title: titleCtrl.text,
                           description: descCtrl.text,
-                          author: authorCtrl.text,
-                          imageUrl: 'https://via.placeholder.com/300x200',
+                          owner_id: authorCtrl.text,
+                          image_url: 'https://via.placeholder.com/300x200',
                           tags: ['Flutter'],
                           categories: ['App'],
-                          teamMembers: [],
-                          createdDate: DateTime.now(),
+                          members: [],
+                          timestamp: DateTime.now(),
                           status: selectedStatus,
                           views: 0,
                           likes: 0,
@@ -229,7 +229,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            project.author,
+                            project.owner_id,
                             style: const TextStyle(color: AppTheme.head2, fontSize: 14),
                           ),
                         ),

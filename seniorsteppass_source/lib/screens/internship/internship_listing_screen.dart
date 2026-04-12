@@ -47,7 +47,7 @@ class InternshipListingScreen extends StatelessWidget {
                         color: AppTheme.lightGrey,
                       ),
                       child: Image.network(
-                        company.logoUrl,
+                        company.logo_url,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
@@ -68,7 +68,7 @@ class InternshipListingScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            company.name,
+                            company.company_name,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

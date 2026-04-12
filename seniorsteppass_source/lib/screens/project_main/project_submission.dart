@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/cloudinary_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 typedef ImagePickerCallback = Future<List<XFile>> Function();
 
@@ -8,17 +12,23 @@ class ProjectSubmissionScreen extends StatefulWidget {
   const ProjectSubmissionScreen({super.key});
 
   @override
-  State<ProjectSubmissionScreen> createState() => _ProjectSubmissionScreenState();
+  State<ProjectSubmissionScreen> createState() =>
+      _ProjectSubmissionScreenState();
 }
 
 class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
   final TextEditingController projectNameController = TextEditingController();
   final TextEditingController detailedController = TextEditingController();
+
+  final List<File> _imageFiles = []; // Local image files before upload
   final List<String> projectImages = [];
   final List<String> projectLinks = [];
   final List<String> projectMembers = [];
   final List<String> selectedTags = [];
   final ImagePicker _imagePicker = ImagePicker();
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+
+  bool _isLoading = false;
 
   final List<String> categories = [
     'Software Engineer',
@@ -33,16 +43,78 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
       if (selectedImages.isNotEmpty) {
         setState(() {
           for (var image in selectedImages) {
+            _imageFiles.add(File(image.path));
             projectImages.add(image.name);
           }
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
+    }
+  }
+
+  // Upload images to Cloudinary and get URLs
+  Future<void> _submitData() async {
+    if (projectNameController.text.isEmpty ||
+        detailedController.text.isEmpty ||
+        _imageFiles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please fill in all fields and select at least one image',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    final String currentStudentId = user?.displayName ?? "Unknown";
+
+    setState(() => _isLoading = true);
+
+    try {
+      String? imageUrl = await _cloudinaryService.uploadImage(
+        _imageFiles.first,
+      );
+      if (imageUrl != null) {
+        // Save project data to Firestore
+        await FirebaseFirestore.instance.collection('projects').add({
+          'name': projectNameController.text.trim(),
+          'description': detailedController.text.trim(),
+          'owner_id': currentStudentId,
+          'image_url': imageUrl,
+          'links': projectLinks,
+          'members': projectMembers,
+          'tags': selectedTags,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Project submitted successfully!')),
+          );
+          Navigator.pop(context);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image upload failed')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error submitting project: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -98,8 +170,10 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -125,8 +199,10 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -143,16 +219,15 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                 const SizedBox(height: 4),
                 const Text(
                   'Select prototype or presentation overview images',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.white70),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.white,
                     borderRadius: BorderRadius.circular(12),
@@ -174,10 +249,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                           projectImages.isNotEmpty
                               ? '${projectImages.length} image(s) selected'
                               : 'No image selected',
-                          style: TextStyle(
-                            color: AppTheme.head2,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: AppTheme.head2, fontSize: 12),
                         ),
                       ),
                     ],
@@ -326,8 +398,10 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.white,
                     borderRadius: BorderRadius.circular(12),
@@ -363,8 +437,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color:
-                                  isSelected ? Colors.white : AppTheme.head,
+                              color: isSelected ? Colors.white : AppTheme.head,
                             ),
                           ),
                         ),
@@ -379,11 +452,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Project submitted!')),
-                      );
-                    },
+                    onPressed: _submitData,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
