@@ -1,8 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class InternshipReviewForm extends StatefulWidget {
-  const InternshipReviewForm({super.key});
+  final String companyName;
+  final String role;
+
+  const InternshipReviewForm({
+    super.key,
+    required this.companyName, 
+    required this.role
+  });
 
   @override
   State<InternshipReviewForm> createState() => _InternshipReviewFormState();
@@ -48,14 +57,14 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
               const Text('Company Name', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: 'Company Name', // ไว้รับค่าจากหน้า Profile อีกที
+                initialValue: widget.companyName, // ไว้รับค่าจากหน้า Profile อีกที
                 readOnly: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppTheme.white,
+                  fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
                   ),
                 ),
               ),
@@ -64,14 +73,15 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
               const Text('Role / Department', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: 'Department', // ไว้รับค่าจากหน้า Profile อีกที
+                initialValue: widget.role, // ไว้รับค่าจากหน้า Profile อีกที
                 readOnly: true,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppTheme.white,
+                  fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                    
                   ),
                 ),
               ),
@@ -125,12 +135,31 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate() && _rating > 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Review submitted successfully!')),
-                      );
-                      Navigator.pop(context);
+                      final reviewData = {
+                        'company_name': widget.companyName,
+                        'department': widget.role,
+                        'rating': _rating,
+                        'review_text': _reviewController.text,
+                        'user_id': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
+                        'created_at': Timestamp.now(),
+                      };
+
+                      try {
+                        await FirebaseFirestore.instance.collection('reviews').add(reviewData);
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Review submitted successfully!')),
+                          );
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to submit review. Please try again later.')),
+                        );
+                      }
                     } else if (_rating == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Please provide a rating')),
