@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:seniorsteppass_source/services/database_service.dart';
 import '../../theme/app_theme.dart';
 import '../auth/login_screen.dart';
 
@@ -6,6 +7,8 @@ import 'user_management_screen.dart';
 import 'project_management_screen.dart';
 import 'company_management_screen.dart';
 import 'review_moderation_screen.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -50,7 +53,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         title: Text(
           _titles[_selectedIndex],
-          style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.white),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.white,
+          ),
         ),
         backgroundColor: AppTheme.primaryTeal,
         foregroundColor: AppTheme.white,
@@ -65,9 +71,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.admin_panel_settings, size: 48, color: AppTheme.white),
+                  Icon(
+                    Icons.admin_panel_settings,
+                    size: 48,
+                    color: AppTheme.white,
+                  ),
                   SizedBox(height: 12),
-                  Text('Portal Admin', style: TextStyle(color: AppTheme.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Portal Admin',
+                    style: TextStyle(
+                      color: AppTheme.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   // Text('seniorsteppass_source', style: TextStyle(color: AppTheme.third)),
                 ],
               ),
@@ -120,7 +137,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: AppTheme.bad),
-              title: const Text('Logout', style: TextStyle(color: AppTheme.bad)),
+              title: const Text(
+                'Logout',
+                style: TextStyle(color: AppTheme.bad),
+              ),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -141,40 +161,91 @@ class _OverviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final DatabaseService _dbService = DatabaseService();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: FutureBuilder<Map<String, int>>(
+        future:
+            Future.wait([
+              _dbService.getTotalUsersCount(),
+              _dbService.getPendingProjectsCount(),
+              _dbService.getTotalCompaniesCount(),
+              _dbService.getTotalReviewsCount(),
+            ]).then(
+              (values) => {
+                'users': values[0],
+                'pending': values[1],
+                'companies': values[2],
+                'reviews': values[3],
+              },
+            ),
+        builder: (context, snapshot) {
+          final data =
+              snapshot.data ??
+              {'users': 0, 'pending': 0, 'companies': 0, 'reviews': 0};
+          final bool isLoading =
+              snapshot.connectionState == ConnectionState.waiting;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildStatCard('Total Users', '1,245', Icons.people, AppTheme.info),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Total Users',
+                      isLoading ? '...' : '${data['users']}',
+                      Icons.people,
+                      AppTheme.info,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Pending Projects',
+                      isLoading ? '...' : '${data['pending']}',
+                      Icons.pending_actions,
+                      AppTheme.warning,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard('Pending Projects', '12', Icons.pending_actions, AppTheme.warning),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Total Companies',
+                      isLoading ? '...' : '${data['companies']}',
+                      Icons.business,
+                      AppTheme.success,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      'New Reviews',
+                      isLoading ? '...' : '${data['reviews']}',
+                      Icons.rate_review,
+                      AppTheme.primaryTeal,
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard('Total Companies', '84', Icons.business, AppTheme.success),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard('New Reviews', '28', Icons.rate_review, AppTheme.primaryTeal),
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -184,9 +255,20 @@ class _OverviewScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 32, color: color),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.head)),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.head,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(title, style: const TextStyle(fontSize: 12, color: AppTheme.head2), textAlign: TextAlign.center),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, color: AppTheme.head2),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

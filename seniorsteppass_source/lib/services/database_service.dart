@@ -7,6 +7,7 @@ import '../models/review_model.dart';
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+// --- Profile ----
   // collect user data
   Future<UserModel> getUserData(String email) async {
     var query = await _db.collection('users').where('email', isEqualTo: email).get();
@@ -55,6 +56,27 @@ class DatabaseService {
   Future<void> addReview(ReviewModel review) async {
     await _db.collection('reviews').add(review.toJson());
   }
+// ----------
 
+// ---- Admin Dashbosrd -----
+  Future<int> getTotalUsersCount() async {
+    var snapshot = await _db.collection('users').get();
+    return snapshot.size;
+  }
+
+  Future<int> getPendingProjectsCount() async {
+    var snapshot = await _db.collection('projects').where('status', isEqualTo: 'pending').get();
+    return snapshot.size;
+  }
+
+  Future<int> getTotalCompaniesCount() async {
+    var snapshot = await _db.collection('internships').get();
+    return snapshot.size;
+  }
+
+  Future<int> getTotalReviewsCount() async {
+    var snapshot = await _db.collection('reviews').get();
+    return snapshot.size;
+  }
 
 }
