@@ -74,6 +74,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // upload picture
+                    _buildImageSection(localSelectedImage, user?.profilePic, () async {
+                      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                      if (image != null) setStateModal(() => localSelectedImage = File(image.path));
+                    }),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: nameCtrl, 
                       decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
@@ -94,11 +100,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       controller: emailCtrl, 
                       decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
                     ),
-                    // upload picture
-                    _buildImageSection(localSelectedImage, user?.profilePic, () async {
-                      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-                      if (image != null) setStateModal(() => localSelectedImage = File(image.path));
-                    }),
+                  
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: selectedRole,
