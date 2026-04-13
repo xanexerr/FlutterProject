@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:seniorsteppass_source/services/cloudinary_service.dart';
 import '../../models/index.dart';
-import '../../models/mock_data.dart';
 import '../../theme/app_theme.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloudinary_public/cloudinary_public.dart';
 
 
 class UserManagementScreen extends StatefulWidget {
@@ -22,7 +20,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   final CloudinaryService _cloudinaryService = CloudinaryService();
   final ImagePicker _picker = ImagePicker();
-  File? _selectedImage;
 
   Widget _buildImageSection(File? localFile, String? networkUrl, VoidCallback onTap) {
     return GestureDetector(
