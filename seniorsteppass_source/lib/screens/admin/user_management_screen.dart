@@ -193,10 +193,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ElevatedButton(
             onPressed: () async{
               try {
-                await FirebaseFirestore.instance
+                final querySnapshot = await FirebaseFirestore.instance
                   .collection('users')
-                  .doc(user.id)
-                  .delete();
+                  .where('student_id', isEqualTo: user.student_id)
+                  .get();
+
+                for (var doc in querySnapshot.docs) {
+                  await doc.reference.delete();
+                }
 
                 if (mounted) {
                   Navigator.pop(context);
