@@ -80,6 +80,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
     try {
       String? imageUrl = await _cloudinaryService.uploadImage(
         _imageFiles.first,
+        'SeniorPassStep_Projects',
       );
       if (imageUrl != null) {
         // Save project data to Firestore
