@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/index.dart';
-import '../../models/mock_data.dart';
 import '../../theme/app_theme.dart';
 
 class UserManagementScreen extends StatefulWidget {
@@ -11,13 +11,12 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
-  // Use a local copy of mockUsers to allow editing/deleting in memory
-  late List<UserModel> _users;
+  late FirebaseFirestore _firestore;
 
   @override
   void initState() {
     super.initState();
-    _users = List.from(mockUsers); // Copy dummy list
+    _firestore = FirebaseFirestore.instance;
   }
 
   void _showUserModal([UserModel? user]) {
@@ -87,45 +86,32 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // Update state
-                    setState(() {
-                      if (isEditing) {
-                        int index = _users.indexWhere((u) => u.id == user.id);
-                        if (index != -1) {
-                          final updatedUser = UserModel(
-                            id: user.id,
-                            full_name: nameCtrl.text,
-                            student_id: studentIdCtrl.text,
-                            faculty: facultyCtrl.text,
-                            role: selectedRole,
-                            email: emailCtrl.text,
-                          );
-                          _users[index] = updatedUser;
-
-                          // Update global mock data so changes persist in session
-                          int mockIndex = mockUsers.indexWhere((u) => u.id == user.id);
-                          if (mockIndex != -1) mockUsers[mockIndex] = updatedUser;
-                        }
-                      } else {
-                        final newUser = UserModel(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          full_name: nameCtrl.text,
-                          student_id: studentIdCtrl.text,
-                          faculty: facultyCtrl.text,
-                          role: selectedRole,
-                          email: emailCtrl.text,
-                        );
-                        _users.add(newUser);
-                        
-                        // Update global mock data so changes persist in session
-                        mockUsers.add(newUser);
-                      }
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(isEditing ? 'User updated successfully' : 'User added successfully')),
-                    );
+                  onPressed: () async {
+                    if (isEditing) {
+                      // UPDATE operation
+                      await _firestore.collection('users').doc(user.id).update({
+                        'full_name': nameCtrl.text,
+                        'student_id': studentIdCtrl.text,
+                        'faculty': facultyCtrl.text,
+                        'role': selectedRole,
+                        'email': emailCtrl.text,
+                      });
+                    } else {
+                      // CREATE operation
+                      await _firestore.collection('users').add({
+                        'full_name': nameCtrl.text,
+                        'student_id': studentIdCtrl.text,
+                        'faculty': facultyCtrl.text,
+                        'role': selectedRole,
+                        'email': emailCtrl.text,
+                      });
+                    }
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isEditing ? 'User updated successfully' : 'User added successfully')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal, foregroundColor: Colors.white),
                   child: const Text('Save'),
@@ -138,28 +124,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _confirmDelete(UserModel user) {
+  void _confirmDelete(String userId, String userName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User', style: TextStyle(color: AppTheme.bad)),
-        content: Text('Are you sure you want to delete ${user.full_name}? This action cannot be undone.'),
+        content: Text('Are you sure you want to delete $userName? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _users.removeWhere((u) => u.id == user.id);
-                // Remove from global mock data so changes persist in session
-                mockUsers.removeWhere((u) => u.id == user.id);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User deleted successfully')),
-              );
+            onPressed: () async {
+              // DELETE operation
+              await _firestore.collection('users').doc(userId).delete();
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User deleted successfully')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.bad, foregroundColor: Colors.white),
             child: const Text('Delete'),
@@ -181,10 +166,46 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: _users.length,
-          itemBuilder: (context, index) {
-            final user = _users[index];
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestore.collection('users').snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: const TextStyle(color: AppTheme.bad),
+                ),
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No users found',
+                  style: TextStyle(color: AppTheme.head3, fontSize: 16),
+                ),
+              );
+            }
+
+            final users = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: users.length,
+              itemBuilder: (context, index) {
+                final doc = users[index];
+                final data = doc.data() as Map<String, dynamic>;
+                final user = UserModel(
+                  id: doc.id,
+                  full_name: data['full_name'] ?? '',
+                  student_id: data['student_id'] ?? '',
+                  faculty: data['faculty'] ?? '',
+                  role: data['role'] ?? 'User',
+                  email: data['email'] ?? '',
+                );
             return Card(
               elevation: 2,
               margin: const EdgeInsets.only(bottom: 12),
@@ -267,7 +288,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         const SizedBox(width: 16),
                         IconButton(
                           icon: const Icon(Icons.delete, color: AppTheme.bad, size: 22),
-                          onPressed: () => _confirmDelete(user),
+                          onPressed: () => _confirmDelete(user.id, user.full_name),
                           tooltip: 'Delete',
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -277,6 +298,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ],
                 ),
               ),
+            );
+              },
             );
           },
         ),
