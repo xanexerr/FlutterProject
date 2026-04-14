@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/index.dart';
 import '../../theme/app_theme.dart';
+import 'company_form_screen.dart';
 
 class CompanyManagementScreen extends StatefulWidget {
   const CompanyManagementScreen({super.key});
@@ -13,141 +14,12 @@ class CompanyManagementScreen extends StatefulWidget {
 class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Format DateTime to: April 15, 2026 at 12:55:08 AM UTC+7
-  String _formatTimestamp(DateTime dateTime) {
-    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'];
-    final month = monthNames[dateTime.month - 1];
-    final day = dateTime.day;
-    final year = dateTime.year;
-    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final second = dateTime.second.toString().padLeft(2, '0');
-    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
-    return '$month $day, $year at $hour:$minute:$second $period UTC+7';
-  }
-
   void _showCompanyModal([CompanyModel? company]) {
-    final isEditing = company != null;
-    final nameCtrl = TextEditingController(text: company?.company_name ?? '');
-    final deptCtrl = TextEditingController(text: company?.department ?? '');
-    final descCtrl = TextEditingController(text: company?.description ?? '');
-    final locationCtrl = TextEditingController(text: company?.location ?? '');
-    final websiteCtrl = TextEditingController(text: company?.website ?? '');
-    final logoUrlCtrl = TextEditingController(text: company?.logo_url ?? '');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateModal) {
-            return AlertDialog(
-              title: Text(
-                isEditing ? 'Edit Company' : 'Add New Company',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryTeal),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameCtrl,
-                      decoration: const InputDecoration(labelText: 'Company Name', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: deptCtrl,
-                      decoration: const InputDecoration(labelText: 'Department / Field', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: locationCtrl,
-                      decoration: const InputDecoration(labelText: 'Location', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: websiteCtrl,
-                      decoration: const InputDecoration(labelText: 'Website', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: logoUrlCtrl,
-                      decoration: const InputDecoration(labelText: 'Logo URL', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: descCtrl,
-                      maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      if (isEditing) {
-                        // UPDATE
-                        await _firestore.collection('internships').doc(company.id).update({
-                          'company_name': nameCtrl.text,
-                          'department': deptCtrl.text,
-                          'description': descCtrl.text,
-                          'location': locationCtrl.text,
-                          'website': websiteCtrl.text,
-                          'logo_url': logoUrlCtrl.text,
-                        });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Company updated successfully')),
-                          );
-                        }
-                      } else {
-                        // CREATE
-                        final now = DateTime.now();
-                        final timestamp = _formatTimestamp(now);
-                        
-                        await _firestore.collection('internships').add({
-                          'company_name': nameCtrl.text,
-                          'department': deptCtrl.text,
-                          'description': descCtrl.text,
-                          'location': locationCtrl.text,
-                          'website': websiteCtrl.text,
-                          'logo_url': logoUrlCtrl.text,
-                          'overallRating': 0.0,
-                          'reviewCount': 0,
-                          'created_at': timestamp,
-                          'created_timestamp': now,
-                        });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Company added successfully')),
-                          );
-                        }
-                      }
-                      if (mounted) {
-                        Navigator.pop(context);
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal, foregroundColor: Colors.white),
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CompanyFormScreen(company: company),
+      ),
     );
   }
 
