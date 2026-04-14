@@ -861,24 +861,12 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 12),
                         const SizedBox(width: 4),
-                        FutureBuilder<double>(
-                          future: _getAverageRatingFromReviews(company.id),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Text(
-                                'Loading',
-                                style: TextStyle(fontSize: 10),
-                              );
-                            }
-                            final rating = snapshot.data ?? 0.0;
-                            return Text(
-                              rating.toStringAsFixed(1),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            );
-                          },
+                        Text(
+                          company.overallRating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Text(
