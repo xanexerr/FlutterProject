@@ -12,6 +12,32 @@ class ReviewModerationScreen extends StatefulWidget {
 class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Format Timestamp to: April 15, 2026 at 12:55:08 AM UTC+7
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp is String) return timestamp;
+    if (timestamp == null) return '';
+    
+    DateTime dateTime;
+    if (timestamp is Timestamp) {
+      dateTime = timestamp.toDate();
+    } else if (timestamp is DateTime) {
+      dateTime = timestamp;
+    } else {
+      return '';
+    }
+
+    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    final month = monthNames[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year at $hour:$minute:$second $period UTC+7';
+  }
+
   Future<void> _updateReviewStatus(String reviewId, String newStatus) async {
     try {
       await _firestore.collection('reviews').doc(reviewId).update({
@@ -105,7 +131,7 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
               final String reviewText = reviewData['review_text'] ?? '';
               final int rating = reviewData['rating'] ?? 0;
               final String userId = reviewData['user_id'] ?? 'Unknown User';
-              final String createdAt = reviewData['created_at'] ?? '';
+              final String createdAt = _formatTimestamp(reviewData['created_at']);
               final String status = reviewData['status'] ?? 'Pending';
 
               Color statusColor;
