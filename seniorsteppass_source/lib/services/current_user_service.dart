@@ -16,8 +16,13 @@ class CurrentUserService {
 
   UserModel? _cachedUserData;
 
-  /// Get the current logged-in user's ID
+  /// Get the current logged-in user's ID (Firestore document ID)
   String? getCurrentUserId() {
+    return _cachedUserData?.id;
+  }
+
+  /// Get Firebase Auth UID
+  String? getAuthUid() {
     return _auth.currentUser?.uid;
   }
 

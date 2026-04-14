@@ -45,6 +45,10 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
   Future<void> _checkExistingReview() async {
     try {
       final currentUserService = CurrentUserService();
+      
+      // First, fetch and cache the current user data to get the Firestore doc ID
+      await currentUserService.fetchCurrentUserData();
+      
       final studentId = currentUserService.getCurrentUserId();
       if (studentId == null) return;
 
@@ -430,6 +434,10 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
 
       try {
         final currentUserService = CurrentUserService();
+        
+        // Fetch and cache the current user data to get the Firestore doc ID
+        await currentUserService.fetchCurrentUserData();
+        
         final studentId = currentUserService.getCurrentUserId();
 
         if (studentId == null) {
