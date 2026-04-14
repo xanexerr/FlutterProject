@@ -488,36 +488,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Category Ratings
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Categories',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.head,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    _buildCategoryRating('Workload', avgWorkload, Colors.green),
-                                    _buildCategoryRating('Environment', avgEnvironment, Colors.red),
-                                    _buildCategoryRating('Mentorship', avgMentorship, Colors.green),
-                                    _buildCategoryRating('Benefits', avgBenefits, Colors.amber),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                
                           const SizedBox(height: 16),
                           
                           
@@ -533,92 +504,104 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                   reviews[index].data() as Map<String, dynamic>;
                               final reviewText = reviewData['review_text'] ?? '';
                               final department = reviewData['department'] ?? 'Intern';
+                              final studentId = reviewData['student_id'] ?? '';
 
-                              return Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Header: Avatar and Name
-                                    Row(
+                              return FutureBuilder<DocumentSnapshot>(
+                                future: _firestore.collection('users').doc(studentId).get(),
+                                builder: (context, userSnapshot) {
+                                  String userName = 'Unknown User';
+                                  if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                                    final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                                    userName = userData['full_name'] ?? 'Unknown User';
+                                  }
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        // Avatar
-                                        Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.grey[300],
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'FL',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.grey[700],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        // Name and Info
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Firstname Lastname',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.head,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                department,
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: AppTheme.head2,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        // Star Rating
+                                        // Header: Avatar and Name
                                         Row(
-                                          children: List.generate(
-                                            5,
-                                            (i) => Icon(
-                                              Icons.star,
-                                              size: 12,
-                                              color: i < 5 ? Colors.amber : Colors.grey[300],
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            // Avatar
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.grey[300],
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  userName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').take(2).join(),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                              ),
                                             ),
+                                            const SizedBox(width: 12),
+                                            // Name and Info
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    userName,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppTheme.head,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    department,
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: AppTheme.head2,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Star Rating
+                                            Row(
+                                              children: List.generate(
+                                                5,
+                                                (i) => Icon(
+                                                  Icons.star,
+                                                  size: 12,
+                                                  color: i < 5 ? Colors.amber : Colors.grey[300],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        
+                                        // Review Text
+                                        Text(
+                                          reviewText,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppTheme.head2,
+                                            height: 1.4,
                                           ),
+                                          maxLines: 5,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
-                                    
-                                    // Review Text
-                                    Text(
-                                      reviewText,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.head2,
-                                        height: 1.4,
-                                      ),
-                                      maxLines: 5,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             },
                           ),
