@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_model.dart';
 
 class CurrentUserService {
   static final CurrentUserService _instance = CurrentUserService._internal();
@@ -13,8 +14,7 @@ class CurrentUserService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Map<String, dynamic>? _cachedUserData;
-  String? _cachedUserName;
+  UserModel? _cachedUserData;
 
   /// Get the current logged-in user's ID
   String? getCurrentUserId() {
@@ -26,25 +26,25 @@ class CurrentUserService {
     return _auth.currentUser?.email;
   }
 
-  /// Get cached user name (from previous login)
+  /// Get cached user name
   String? getCachedUserName() {
-    return _cachedUserName;
+    return _cachedUserData?.full_name ?? 'User';
   }
 
-  /// Fetch and cache user data from Firestore
-  Future<Map<String, dynamic>?> fetchCurrentUserData() async {
+  /// Fetch and cache user data from Firestore (same as profile_screen)
+  Future<UserModel?> fetchCurrentUserData() async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return null;
+      if (user == null || user.email == null) return null;
 
-      final userDoc = await _firestore
+      final query = await _firestore
           .collection('users')
-          .doc(user.uid)
+          .where('email', isEqualTo: user.email!)
           .get();
 
-      if (userDoc.exists) {
-        _cachedUserData = userDoc.data();
-        _cachedUserName = _cachedUserData?['full_name'] ?? 'User';
+      if (query.docs.isNotEmpty) {
+        var doc = query.docs.first;
+        _cachedUserData = UserModel.fromJson(doc.data(), doc.id);
         return _cachedUserData;
       }
     } catch (e) {
@@ -54,14 +54,13 @@ class CurrentUserService {
   }
 
   /// Get cached user data
-  Map<String, dynamic>? getCachedUserData() {
+  UserModel? getCachedUserData() {
     return _cachedUserData;
   }
 
   /// Clear cached data on logout
   void clearCache() {
     _cachedUserData = null;
-    _cachedUserName = null;
   }
 
   /// Check if user is logged in
@@ -75,3 +74,4 @@ class CurrentUserService {
     await _auth.signOut();
   }
 }
+

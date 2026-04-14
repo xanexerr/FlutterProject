@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_screen/main_screen.dart';
+import 'services/current_user_service.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -22,21 +21,13 @@ class _LandingPageState extends State<LandingPage> {
 
   Future<void> _loadCurrentUser() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        
-        if (userDoc.exists) {
-          setState(() {
-            _currentUser = userDoc['full_name'] ?? 'User';
-          });
-        }
+      final userData = await CurrentUserService().fetchCurrentUserData();
+      if (userData != null && mounted) {
+        setState(() {
+          _currentUser = userData.full_name;
+        });
       }
     } catch (e) {
-      // Fallback to 'User' if error
       if (mounted) {
         setState(() => _currentUser = 'User');
       }
