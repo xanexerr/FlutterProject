@@ -6,7 +6,7 @@ class UserModel {
   final String role; // 'Admin' or 'User'
   final String? profilePic;
   final String email;
-  final String? bio;
+  // final String? bio;
   final List<dynamic>? intern_list;
 
   UserModel({
@@ -17,7 +17,7 @@ class UserModel {
     required this.role,
     this.profilePic,
     required this.email,
-    this.bio,
+    // this.bio,
     this.intern_list,
   });
 
@@ -31,7 +31,7 @@ class UserModel {
       role: json['role'] ?? 'User',
       profilePic: json['profilePic'],
       email: json['email'] ?? '',
-      bio: json['bio']?.toString(),
+      // bio: json['bio']?.toString(),
       intern_list: json['intern_list'] as List<dynamic>?,
     );
   }
@@ -45,7 +45,7 @@ class UserModel {
       'role': role,
       'profilePic': profilePic,
       'email': email,
-      'bio': bio,
+      // 'bio': bio,
       'intern_list': intern_list,
 
     };

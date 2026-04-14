@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: AppTheme.bad,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -118,36 +118,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
 
                       // Sign Up option
-                      // GestureDetector(
-                      //   onTap: () {
-                      //     Navigator.pushReplacement(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) => const SignUpScreen(),
-                      //       ),
-                      //     );
-                      //   },
-                      //   child: RichText(
-                      //     text: const TextSpan(
-                      //       text: 'Don\'t have an account? ',
-                      //       style: TextStyle(
-                      //         fontFamily: 'Inter',
-                      //         color: AppTheme.white,
-                      //         fontSize: 13,
-                      //       ),
-                      //       children: [
-                      //         TextSpan(
-                      //           text: 'Sign Up',
-                      //           style: TextStyle(
-                      //             fontFamily: 'Inter',
-                      //             color: AppTheme.darkYellow,
-                      //             fontWeight: FontWeight.bold,
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: const TextSpan(
+                            text: 'First time logging in? ',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: AppTheme.white,
+                              fontSize: 13,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'Activate Account',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  color: AppTheme.darkYellow,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -245,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(
           content: Text('Please enter email and password'),
           backgroundColor: AppTheme.bad,
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(
           content: Text('Please enter a valid email address'),
           backgroundColor: AppTheme.bad,
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
       return;

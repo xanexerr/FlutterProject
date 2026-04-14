@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 
 class CloudinaryService {
   final String cloudName = 'dlwydwqi9';
-  final String uploadPreset = 'SeniorPassStep_Projects';
+  // final String uploadPreset = 'SeniorPassStep_Projects';
+  // final String uploadPreset = 'SeniorPassStep_Users';
+  // final String uploadPreset = 'SeniorPassStep_Internships';
 
-  Future<String?> uploadImage(File imageFile) async {
+  Future<String?> uploadImage(File imageFile, String uploadPreset) async {
     final url = Uri.parse(
       'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
     );

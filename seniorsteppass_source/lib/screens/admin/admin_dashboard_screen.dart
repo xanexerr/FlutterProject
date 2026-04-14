@@ -8,7 +8,6 @@ import 'project_management_screen.dart';
 import 'company_management_screen.dart';
 import 'review_moderation_screen.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -169,13 +168,13 @@ class _OverviewScreen extends StatelessWidget {
         future:
             Future.wait([
               _dbService.getTotalUsersCount(),
-              _dbService.getPendingProjectsCount(),
+              _dbService.getActiveProjectsCount(),
               _dbService.getTotalCompaniesCount(),
               _dbService.getTotalReviewsCount(),
             ]).then(
               (values) => {
                 'users': values[0],
-                'pending': values[1],
+                'active': values[1],
                 'companies': values[2],
                 'reviews': values[3],
               },
@@ -183,7 +182,7 @@ class _OverviewScreen extends StatelessWidget {
         builder: (context, snapshot) {
           final data =
               snapshot.data ??
-              {'users': 0, 'pending': 0, 'companies': 0, 'reviews': 0};
+              {'users': 0, 'active': 0, 'companies': 0, 'reviews': 0};
           final bool isLoading =
               snapshot.connectionState == ConnectionState.waiting;
 
@@ -203,8 +202,8 @@ class _OverviewScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatCard(
-                      'Pending Projects',
-                      isLoading ? '...' : '${data['pending']}',
+                      'Active Projects',
+                      isLoading ? '...' : '${data['active']}',
                       Icons.pending_actions,
                       AppTheme.warning,
                     ),
