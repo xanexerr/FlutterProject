@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/current_user_service.dart';
 import 'signup_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../main_screen/main_screen.dart';
@@ -289,6 +290,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // Login successful, check user role and navigate accordingly
       if (userQuery.docs.isNotEmpty) {
         String role = userQuery.docs.first['role'] ?? 'User';
+        
+        // Cache user data in CurrentUserService
+        await CurrentUserService().fetchCurrentUserData();
 
         if (isAdminRoute){
           if (role == 'Admin') {

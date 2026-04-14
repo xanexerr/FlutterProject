@@ -1,10 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_screen/main_screen.dart';
 
-class LandingPage extends StatelessWidget {
+class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
-  static const String _currentUser = 'User'; 
+
+  @override
+  State<LandingPage> createState() => _LandingPageState();
+}
+
+class _LandingPageState extends State<LandingPage> {
+  String _currentUser = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists) {
+          setState(() {
+            _currentUser = userDoc['full_name'] ?? 'User';
+          });
+        }
+      }
+    } catch (e) {
+      // Fallback to 'User' if error
+      if (mounted) {
+        setState(() => _currentUser = 'User');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
