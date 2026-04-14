@@ -9,6 +9,7 @@ class ReviewModel {
   final List<String> techStack;
   final DateTime timestamp;
   final String company;
+  final String status;
 
   ReviewModel({
     required this.id,
@@ -19,6 +20,7 @@ class ReviewModel {
     required this.techStack,
     required this.timestamp,
     required this.company,
+    required this.status,
   });
 
   // Convert from JSON
@@ -34,6 +36,7 @@ class ReviewModel {
                 ? (json['timestamp'] as Timestamp).toDate() 
                 : DateTime.now(),    
       company: json['company'] ?? '',
+      status: json['status'] ?? 'Pending',
     );
   }
 
@@ -47,6 +50,7 @@ class ReviewModel {
       'techStack': techStack,
       'timestamp': Timestamp.fromDate(timestamp),
       'company': company,
+      'status': status,
     };
   }
 }

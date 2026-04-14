@@ -138,24 +138,34 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate() && _rating > 0) {
                       final reviewData = {
-                        'company_name': widget.companyName,
-                        'department': widget.role,
+                        'company': widget.companyName,
+                        'position': widget.role,
                         'rating': _rating,
-                        'review_text': _reviewController.text,
-                        'user_id': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
-                        'created_at': Timestamp.now(),
+                        'comment': _reviewController.text,
+                        'reviewer_id': FirebaseAuth.instance.currentUser?.email ?? 'anonymous',
+                        'timestamp': FieldValue.serverTimestamp(),
+                        'status': 'Pending',
+                        'techStack': [],
                       };
 
                       try {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+
                         await FirebaseFirestore.instance.collection('reviews').add(reviewData);
 
                         if (mounted) {
+                          Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Review submitted successfully!')),
                           );
                           Navigator.pop(context);
                         }
                       } catch (e) {
+                        if (mounted) Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Failed to submit review. Please try again later.')),
                         );

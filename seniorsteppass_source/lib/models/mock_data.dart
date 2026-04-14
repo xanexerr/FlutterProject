@@ -25,6 +25,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['Flutter', 'Dart', 'Firebase'],
         timestamp: DateTime.now().subtract(Duration(days: 10)),
         company: 'Google Thailand',
+        status: 'Pending'
       ),
       ReviewModel(
         id: 'r2',
@@ -36,6 +37,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['Kotlin', 'Java', 'Cloud'],
         timestamp: DateTime.now().subtract(Duration(days: 20)),
         company: 'Google Thailand',
+        status: 'Pending'
       ),
     ],
   ),
@@ -61,6 +63,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['Azure', 'C#', 'Python'],
         timestamp: DateTime.now().subtract(Duration(days: 15)),
         company: 'Microsoft Thailand',
+        status: 'Pending'
       ),
       ReviewModel(
         id: 'r4',
@@ -71,6 +74,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['Docker', 'Kubernetes', 'Terraform'],
         timestamp: DateTime.now().subtract(Duration(days: 25)),
         company: 'Microsoft Thailand',
+        status: 'Pending'
       ),
     ],
   ),
@@ -96,6 +100,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['React Native', 'JavaScript', 'GraphQL'],
         timestamp: DateTime.now().subtract(Duration(days: 30)),
         company: 'Facebook Thailand',
+        status: 'Pending'
       ),
     ],
   ),
@@ -121,6 +126,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['Python', 'PostgreSQL', 'Docker'],
         timestamp: DateTime.now().subtract(Duration(days: 5)),
         company: 'Ascend Money',
+        status: 'Pending'
       ),
     ],
   ),
@@ -146,6 +152,7 @@ final List<CompanyModel> mockCompanies = [
         techStack: ['React', 'Node.js', 'MySQL'],
         timestamp: DateTime.now().subtract(Duration(days: 12)),
         company: 'Uniqlo Thailand',
+        status: 'Pending'
       ),
     ],
   ),
