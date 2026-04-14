@@ -59,11 +59,23 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
         final reviewData = query.docs[0].data();
         setState(() {
           _existingReviewId = query.docs[0].id;
-          _workloadRating = (reviewData['workload_rating'] as num?)?.toDouble() ?? 0.0;
-          _environmentRating = (reviewData['environment_rating'] as num?)?.toDouble() ?? 0.0;
-          _mentorshipRating = (reviewData['mentorship_rating'] as num?)?.toDouble() ?? 0.0;
-          _benefitsRating = (reviewData['benefits_rating'] as num?)?.toDouble() ?? 0.0;
-          _commentController.text = reviewData['review_text'] ?? '';
+          
+          // Handle both old format (single rating) and new format (category ratings)
+          if (reviewData.containsKey('workload_rating')) {
+            _workloadRating = (reviewData['workload_rating'] as num?)?.toDouble() ?? 0.0;
+            _environmentRating = (reviewData['environment_rating'] as num?)?.toDouble() ?? 0.0;
+            _mentorshipRating = (reviewData['mentorship_rating'] as num?)?.toDouble() ?? 0.0;
+            _benefitsRating = (reviewData['benefits_rating'] as num?)?.toDouble() ?? 0.0;
+          } else if (reviewData.containsKey('rating')) {
+            // Old format - convert single rating to all categories
+            final singleRating = (reviewData['rating'] as num?)?.toDouble() ?? 0.0;
+            _workloadRating = singleRating;
+            _environmentRating = singleRating;
+            _mentorshipRating = singleRating;
+            _benefitsRating = singleRating;
+          }
+          
+          _commentController.text = reviewData['review_text'] as String? ?? '';
           _isEditing = true;
         });
       }
@@ -442,40 +454,50 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
           'environment_rating': _environmentRating,
           'mentorship_rating': _mentorshipRating,
           'benefits_rating': _benefitsRating,
-          'review_text': _commentController.text,
+          'review_text': _commentController.text.trim(),
           'status': 'Pending',
           'updated_at': Timestamp.now(),
         };
 
         if (_isEditing && _existingReviewId != null) {
           // UPDATE existing review
-          await FirebaseFirestore.instance
-              .collection('reviews')
-              .doc(_existingReviewId)
-              .update(reviewData);
+          try {
+            await FirebaseFirestore.instance
+                .collection('reviews')
+                .doc(_existingReviewId!)
+                .update(reviewData);
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Feedback updated successfully!'),
-                backgroundColor: AppTheme.success,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Feedback updated successfully!'),
+                  backgroundColor: AppTheme.success,
+                ),
+              );
+            }
+          } catch (e) {
+            print('Update error: $e');
+            throw Exception('Failed to update review: $e');
           }
         } else {
           // CREATE new review
           reviewData['created_at'] = Timestamp.now();
-          await FirebaseFirestore.instance
-              .collection('reviews')
-              .add(reviewData);
+          try {
+            await FirebaseFirestore.instance
+                .collection('reviews')
+                .add(reviewData);
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Feedback submitted successfully!'),
-                backgroundColor: AppTheme.success,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Feedback submitted successfully!'),
+                  backgroundColor: AppTheme.success,
+                ),
+              );
+            }
+          } catch (e) {
+            print('Create error: $e');
+            throw Exception('Failed to submit review: $e');
           }
         }
 
