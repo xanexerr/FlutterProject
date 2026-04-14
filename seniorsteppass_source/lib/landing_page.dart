@@ -45,12 +45,15 @@ class _LandingPageState extends State<LandingPage> {
             Container(
               width: double.infinity,
               color: AppTheme.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 30.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Welcome, $_currentUser',
+                    'Welcome, ',
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 28,
@@ -58,9 +61,18 @@ class _LandingPageState extends State<LandingPage> {
                       color: AppTheme.primaryTeal,
                     ),
                   ),
+                  Text(
+                    '$_currentUser',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTeal,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   const Text(
-                    'this is detail about the topic that owner write this. this is detail about the topic that owner write this. this is detail about the topic that owner write this. this is detail about the topic that owner write this.',
+                    'Discover your next opportunity with Senior Step Pass',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -90,14 +102,15 @@ class _LandingPageState extends State<LandingPage> {
                 ],
               ),
             ),
-            
+
             // Explore Section
             Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppTheme.lightYellow,
+              decoration: const BoxDecoration(color: AppTheme.lightYellow),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 30.0,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -112,7 +125,11 @@ class _LandingPageState extends State<LandingPage> {
                           color: AppTheme.primaryTeal,
                         ),
                       ),
-                      Icon(Icons.explore_outlined, color: AppTheme.primaryTeal, size: 28),
+                      Icon(
+                        Icons.explore_outlined,
+                        color: AppTheme.primaryTeal,
+                        size: 28,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -289,18 +306,16 @@ class _LandingPageState extends State<LandingPage> {
     String title,
     Color bgColor,
     Color textColor,
-    BuildContext context,
-    {required Set<String> initialFilters}
-  ) {
+    BuildContext context, {
+    required Set<String> initialFilters,
+  }) {
     return GestureDetector(
       onTap: () {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => MainScreen(
-              initialIndex: 1,
-              projectFilters: initialFilters,
-            ),
+            builder: (context) =>
+                MainScreen(initialIndex: 1, projectFilters: initialFilters),
           ),
         );
       },

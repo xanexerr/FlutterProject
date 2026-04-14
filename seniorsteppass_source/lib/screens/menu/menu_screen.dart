@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../auth/login_screen.dart';
 import '../../contact_us_screen.dart';
 import '../../widgets/common_buttons.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -131,9 +132,42 @@ class MenuScreen extends StatelessWidget {
           
           const Spacer(),
 
+          // Back to Admin Button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.info,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Admin Dashboard',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    color: AppTheme.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Log Out Button
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
             child: SizedBox(
               width: double.infinity,
               height: 48,

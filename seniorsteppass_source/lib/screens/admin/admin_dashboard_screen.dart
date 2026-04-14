@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:seniorsteppass_source/services/database_service.dart';
 import '../../theme/app_theme.dart';
 import '../auth/login_screen.dart';
+import '../main_screen/main_screen.dart';
 
 import 'user_management_screen.dart';
 import 'project_management_screen.dart';
@@ -132,6 +133,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               onTap: () {
                 setState(() => _selectedIndex = 4);
                 Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.visibility, color: AppTheme.info),
+              title: const Text(
+                'View User Mode',
+                style: TextStyle(color: AppTheme.info),
+              ),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                );
               },
             ),
             const Divider(),
