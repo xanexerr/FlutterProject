@@ -22,6 +22,10 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
   bool isSortActive = false; // Track if sorting is active
   String sortOrder = 'newest'; // newest, oldest, ratingHigh, ratingLow
   final FavoritesManager _favoritesManager = FavoritesManager();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Cache for calculated ratings
+  final Map<String, double> _ratingCache = {};
 
   final Map<String, String> sortOptions = {
     'newest': 'ใหม่ไปเก่า (ค่าเริ่มต้น)',
@@ -432,6 +436,48 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     );
   }
 
+  // Calculate average rating from Firebase reviews collection
+  Future<double> _getAverageRatingFromReviews(String internshipId) async {
+    if (_ratingCache.containsKey(internshipId)) {
+      return _ratingCache[internshipId]!;
+    }
+
+    try {
+      final snapshot = await _firestore
+          .collection('reviews')
+          .where('internship_id', isEqualTo: internshipId)
+          .where('status', isEqualTo: 'Approved')
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        _ratingCache[internshipId] = 0.0;
+        return 0.0;
+      }
+
+      double totalRating = 0;
+      int count = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final workload = (data['workload_rating'] as num?)?.toDouble() ?? 0;
+        final environment = (data['environment_rating'] as num?)?.toDouble() ?? 0;
+        final mentorship = (data['mentorship_rating'] as num?)?.toDouble() ?? 0;
+        final benefits = (data['benefits_rating'] as num?)?.toDouble() ?? 0;
+
+        final avg = (workload + environment + mentorship + benefits) / 4;
+        totalRating += avg;
+        count++;
+      }
+
+      final averageRating = count > 0 ? totalRating / count : 0.0;
+      _ratingCache[internshipId] = averageRating;
+      return averageRating;
+    } catch (e) {
+      print('Error calculating average rating: $e');
+      return 0.0;
+    }
+  }
+
   List<CompanyModel> _getTop3ByRating() {
     final sorted = [...allCompanies];
     sorted.sort((a, b) => b.overallRating.compareTo(a.overallRating));
@@ -508,12 +554,24 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 14),
                       const SizedBox(width: 4),
-                      Text(
-                        company.overallRating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      FutureBuilder<double>(
+                        future: _getAverageRatingFromReviews(company.id),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text(
+                              'Loading',
+                              style: TextStyle(fontSize: 11),
+                            );
+                          }
+                          final rating = snapshot.data ?? 0.0;
+                          return Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -655,6 +713,40 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 12),
+                        const SizedBox(width: 4),
+                        FutureBuilder<double>(
+                          future: _getAverageRatingFromReviews(company.id),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Text(
+                                'Loading',
+                                style: TextStyle(fontSize: 10),
+                              );
+                            }
+                            final rating = snapshot.data ?? 0.0;
+                            return Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '(${company.reviewCount})',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -763,6 +855,40 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 12),
+                        const SizedBox(width: 4),
+                        FutureBuilder<double>(
+                          future: _getAverageRatingFromReviews(company.id),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Text(
+                                'Loading',
+                                style: TextStyle(fontSize: 10),
+                              );
+                            }
+                            final rating = snapshot.data ?? 0.0;
+                            return Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '(${company.reviewCount})',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
