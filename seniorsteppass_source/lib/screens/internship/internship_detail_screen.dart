@@ -187,6 +187,31 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
     );
   }
 
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp is String) return timestamp;
+    if (timestamp == null) return '';
+    
+    DateTime dateTime;
+    if (timestamp is Timestamp) {
+      dateTime = timestamp.toDate();
+    } else if (timestamp is DateTime) {
+      dateTime = timestamp;
+    } else {
+      return '';
+    }
+
+    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    final month = monthNames[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year at $hour:$minute:$second $period UTC+7';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -472,36 +497,6 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Average Rating Section
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'แนวคะแนนรวม (Average Rating)',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.head,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Workload: ${avgWorkload.toStringAsFixed(1)}/5 | Environment: ${avgEnvironment.toStringAsFixed(1)}/5\nMentorship: ${avgMentorship.toStringAsFixed(1)}/5 | Benefits: ${avgBenefits.toStringAsFixed(1)}/5',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.head2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
                           
                           // Reviews List
                           ListView.separated(
@@ -518,7 +513,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                               final mentorshipRating = reviewData['mentorship_rating'] as num? ?? 0;
                               final benefitsRating = reviewData['benefits_rating'] as num? ?? 0;
                               final reviewText = reviewData['review_text'] ?? '';
-                              final createdAt = reviewData['created_at'] ?? '';
+                              final createdAt = _formatTimestamp(reviewData['created_at']);
                               final department = reviewData['department'] ?? 'Intern';
 
                               return Container(
