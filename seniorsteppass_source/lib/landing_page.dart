@@ -19,21 +19,16 @@ class _LandingPageState extends State<LandingPage> {
     _loadCurrentUser();
   }
 
-  Future<void> _loadCurrentUser() async {
+    Future<void> _loadCurrentUser() async {
     try {
       final userData = await CurrentUserService().fetchCurrentUserData();
-      if (userData != null && mounted) {
-        setState(() {
-          _currentUser = userData.full_name;
-        });
+      if (userData != null) {
+        setState(() => _currentUser = userData.full_name ?? 'User');
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _currentUser = 'User');
-      }
+      // Handle error silently, keep default 'User'
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

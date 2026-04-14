@@ -13,6 +13,20 @@ class CompanyManagementScreen extends StatefulWidget {
 class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Format DateTime to: April 15, 2026 at 12:55:08 AM UTC+7
+  String _formatTimestamp(DateTime dateTime) {
+    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    final month = monthNames[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year at $hour:$minute:$second $period UTC+7';
+  }
+
   void _showCompanyModal([CompanyModel? company]) {
     final isEditing = company != null;
     final nameCtrl = TextEditingController(text: company?.company_name ?? '');
@@ -94,6 +108,9 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
                         }
                       } else {
                         // CREATE
+                        final now = DateTime.now();
+                        final timestamp = _formatTimestamp(now);
+                        
                         await _firestore.collection('internships').add({
                           'company_name': nameCtrl.text,
                           'department': deptCtrl.text,
@@ -103,6 +120,8 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
                           'logo_url': logoUrlCtrl.text,
                           'overallRating': 0.0,
                           'reviewCount': 0,
+                          'created_at': timestamp,
+                          'created_timestamp': now,
                         });
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
