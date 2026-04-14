@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../services/current_user_service.dart';
 
@@ -21,8 +23,15 @@ class InternshipReviewForm extends StatefulWidget {
 
 class _InternshipReviewFormState extends State<InternshipReviewForm> {
   final _formKey = GlobalKey<FormState>();
-  double _rating = 0;
-  final _reviewController = TextEditingController();
+  
+  // Rating categories
+  double _workloadRating = 0;
+  double _environmentRating = 0;
+  double _mentorshipRating = 0;
+  double _benefitsRating = 0;
+  
+  final _commentController = TextEditingController();
+  File? _selectedImage;
   bool _isLoading = false;
   String? _existingReviewId;
   bool _isEditing = false;
@@ -50,8 +59,11 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
         final reviewData = query.docs[0].data();
         setState(() {
           _existingReviewId = query.docs[0].id;
-          _rating = (reviewData['rating'] as num?)?.toDouble() ?? 0.0;
-          _reviewController.text = reviewData['review_text'] ?? '';
+          _workloadRating = (reviewData['workload_rating'] as num?)?.toDouble() ?? 0.0;
+          _environmentRating = (reviewData['environment_rating'] as num?)?.toDouble() ?? 0.0;
+          _mentorshipRating = (reviewData['mentorship_rating'] as num?)?.toDouble() ?? 0.0;
+          _benefitsRating = (reviewData['benefits_rating'] as num?)?.toDouble() ?? 0.0;
+          _commentController.text = reviewData['review_text'] ?? '';
           _isEditing = true;
         });
       }
@@ -60,211 +72,434 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
     }
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
+  }
+
+  Widget _buildStarRating(double rating, Function(int) onRatingChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return GestureDetector(
+          onTap: () => onRatingChanged(index + 1),
+          child: Icon(
+            index < rating ? Icons.star : Icons.star_border,
+            color: Colors.amber,
+            size: 28,
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildRatingCategory(
+    String label,
+    double rating,
+    Function(int) onRatingChanged,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTeal,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildStarRating(rating, onRatingChanged),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    _reviewController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.paleYellow,
+      backgroundColor: AppTheme.primaryTeal,
       appBar: AppBar(
-        backgroundColor: AppTheme.primary,
-        title: const Text('Internship Review', style: TextStyle(color: AppTheme.white)),
-        iconTheme: const IconThemeData(color: AppTheme.white),
+        backgroundColor: AppTheme.primaryTeal,
+        foregroundColor: Colors.white,
+        title: const Text('Internship Feedback'),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Review your Internship Experience',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.head,
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               
-              const Text('Company Name', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
-              const SizedBox(height: 8),
-              TextFormField(
-                initialValue: widget.companyName, // ไว้รับค่าจากหน้า Profile อีกที
-                readOnly: true,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                  ),
+              // Company Info Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              const Text('Role / Department', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
-              const SizedBox(height: 8),
-              TextFormField(
-                initialValue: widget.role, // ไว้รับค่าจากหน้า Profile อีกที
-                readOnly: true,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                    
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              const Text('Rating', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return IconButton(
-                    icon: Icon(
-                      index < _rating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                      size: 40,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Colors.black38,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.business,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _rating = index + 1.0;
-                      });
-                    },
-                  );
-                }),
-              ),
-              const SizedBox(height: 20),
-
-              const Text('Review Details', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.head)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _reviewController,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: 'Share your experience...',
-                  filled: true,
-                  fillColor: AppTheme.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your review';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    if (_formKey.currentState!.validate() && _rating > 0) {
-                      setState(() => _isLoading = true);
-
-                      try {
-                        final currentUserService = CurrentUserService();
-                        final studentId = currentUserService.getCurrentUserId();
-                        
-                        if (studentId == null) {
-                          throw Exception('User not authenticated');
-                        }
-
-                        final reviewData = {
-                          'student_id': studentId,
-                          'internship_id': widget.internshipId,
-                          'company_name': widget.companyName,
-                          'department': widget.role,
-                          'rating': _rating,
-                          'review_text': _reviewController.text,
-                          'status': 'Pending',
-                          'updated_at': Timestamp.now(),
-                        };
-
-                        if (_isEditing && _existingReviewId != null) {
-                          // UPDATE existing review
-                          await FirebaseFirestore.instance
-                              .collection('reviews')
-                              .doc(_existingReviewId)
-                              .update(reviewData);
-
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Review updated successfully!')),
-                            );
-                          }
-                        } else {
-                          // CREATE new review
-                          reviewData['created_at'] = Timestamp.now();
-                          await FirebaseFirestore.instance
-                              .collection('reviews')
-                              .add(reviewData);
-
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Review submitted successfully!')),
-                            );
-                          }
-                        }
-
-                        if (mounted) {
-                          Navigator.pop(context);
-                        }
-                      } catch (e) {
-                        setState(() => _isLoading = false);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
-                          );
-                        }
-                      }
-                    } else if (_rating == 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please provide a rating')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: AppTheme.white),
-                        )
-                      : Text(
-                          _isEditing ? 'Update Review' : 'Submit Review',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.white,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.companyName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.role,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Rating Categories Section
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Internship Feedback',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildRatingCategory(
+                      'Workload',
+                      _workloadRating,
+                      (rating) => setState(() => _workloadRating = rating.toDouble()),
+                    ),
+                    _buildRatingCategory(
+                      'Environment',
+                      _environmentRating,
+                      (rating) => setState(() => _environmentRating = rating.toDouble()),
+                    ),
+                    _buildRatingCategory(
+                      'Mentorship',
+                      _mentorshipRating,
+                      (rating) => setState(() => _mentorshipRating = rating.toDouble()),
+                    ),
+                    _buildRatingCategory(
+                      'Benefits',
+                      _benefitsRating,
+                      (rating) => setState(() => _benefitsRating = rating.toDouble()),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+
+              // Comment Section
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Comment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _commentController,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: 'Share your experience...',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your comment';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Image Upload Section
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Image',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Choose File',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              _selectedImage != null
+                                  ? _selectedImage!.path.split('/').last
+                                  : 'No image selected',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Submit and Cancel Buttons
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _submitReview,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              _isEditing ? 'Update Feedback' : 'Submit',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _submitReview() async {
+    if (_formKey.currentState!.validate() &&
+        _workloadRating > 0 &&
+        _environmentRating > 0 &&
+        _mentorshipRating > 0 &&
+        _benefitsRating > 0) {
+      setState(() => _isLoading = true);
+
+      try {
+        final currentUserService = CurrentUserService();
+        final studentId = currentUserService.getCurrentUserId();
+
+        if (studentId == null) {
+          throw Exception('User not authenticated');
+        }
+
+        final reviewData = {
+          'student_id': studentId,
+          'internship_id': widget.internshipId,
+          'company_name': widget.companyName,
+          'department': widget.role,
+          'workload_rating': _workloadRating,
+          'environment_rating': _environmentRating,
+          'mentorship_rating': _mentorshipRating,
+          'benefits_rating': _benefitsRating,
+          'review_text': _commentController.text,
+          'status': 'Pending',
+          'updated_at': Timestamp.now(),
+        };
+
+        if (_isEditing && _existingReviewId != null) {
+          // UPDATE existing review
+          await FirebaseFirestore.instance
+              .collection('reviews')
+              .doc(_existingReviewId)
+              .update(reviewData);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Feedback updated successfully!'),
+                backgroundColor: AppTheme.success,
+              ),
+            );
+          }
+        } else {
+          // CREATE new review
+          reviewData['created_at'] = Timestamp.now();
+          await FirebaseFirestore.instance
+              .collection('reviews')
+              .add(reviewData);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Feedback submitted successfully!'),
+                backgroundColor: AppTheme.success,
+              ),
+            );
+          }
+        }
+
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: AppTheme.bad,
+            ),
+          );
+        }
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all ratings and comment'),
+          backgroundColor: AppTheme.warning,
+        ),
+      );
+    }
   }
 }
