@@ -306,6 +306,67 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            // Category Ratings Section (Top)
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('reviews')
+                  .where('internship_id', isEqualTo: widget.company.id)
+                  .where('status', isEqualTo: 'Approved')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                double avgWorkload = 0, avgEnvironment = 0, avgMentorship = 0, avgBenefits = 0;
+                
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  final reviews = snapshot.data!.docs;
+                  int count = reviews.length;
+                  
+                  for (var doc in reviews) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    avgWorkload += (data['workload_rating'] as num?)?.toDouble() ?? 0;
+                    avgEnvironment += (data['environment_rating'] as num?)?.toDouble() ?? 0;
+                    avgMentorship += (data['mentorship_rating'] as num?)?.toDouble() ?? 0;
+                    avgBenefits += (data['benefits_rating'] as num?)?.toDouble() ?? 0;
+                  }
+                  avgWorkload /= count;
+                  avgEnvironment /= count;
+                  avgMentorship /= count;
+                  avgBenefits /= count;
+                }
+                
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Internship Ratings',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.head,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildCategoryRating('Workload', avgWorkload, Colors.green),
+                          _buildCategoryRating('Environment', avgEnvironment, Colors.red),
+                          _buildCategoryRating('Mentorship', avgMentorship, Colors.green),
+                          _buildCategoryRating('Benefits', avgBenefits, Colors.amber),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
             // Description
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
