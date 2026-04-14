@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/company_model.dart';
+import '../../models/favorites_manager.dart';
 import 'internship_detail_screen.dart';
 
 class InternshipMainScreen extends StatefulWidget {
@@ -14,20 +15,13 @@ class InternshipMainScreen extends StatefulWidget {
 
 class _InternshipMainScreenState extends State<InternshipMainScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late Set<String> selectedFilters;
   List<CompanyModel> allCompanies = [];
   List<CompanyModel> displayedResults = [];
   bool isLoading = true;
   bool isSearchActive = false;
-  bool isFilterActive = false;
+  bool isSortActive = false; // Track if sorting is active
   String sortOrder = 'newest'; // newest, oldest, ratingHigh, ratingLow
-
-  final List<String> filterOptions = [
-    'Software Engineer',
-    'Data Science',
-    'Internet Of Thing',
-    'Cyber Security',
-  ];
+  final FavoritesManager _favoritesManager = FavoritesManager();
 
   final Map<String, String> sortOptions = {
     'newest': 'ใหม่ไปเก่า (ค่าเริ่มต้น)',
@@ -39,7 +33,6 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
   @override
   void initState() {
     super.initState();
-    selectedFilters = widget.initialFilters ?? {};
     _searchController.addListener(_updateDisplay);
     _fetchCompanies();
   }
@@ -72,34 +65,24 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     setState(() {
       String searchText = _searchController.text.trim();
       isSearchActive = searchText.isNotEmpty;
-      isFilterActive = selectedFilters.isNotEmpty;
 
-      if (isFilterActive && isSearchActive) {
-        // Combined filter + search
+      // Reset sort if search is active
+      if (isSearchActive) {
+        isSortActive = false;
+      }
+
+      if (isSearchActive) {
+        // Search from all fields: company name, department, description, location, website
         displayedResults = allCompanies.where((company) {
-          bool matchesFilter = selectedFilters.contains(company.department);
-          bool matchesSearch = company.company_name
-                  .toLowerCase()
-                  .contains(searchText.toLowerCase()) ||
-              company.description.toLowerCase().contains(searchText.toLowerCase());
-          return matchesFilter && matchesSearch;
+          final searchLower = searchText.toLowerCase();
+          return company.company_name.toLowerCase().contains(searchLower) ||
+              company.department.toLowerCase().contains(searchLower) ||
+              company.description.toLowerCase().contains(searchLower) ||
+              company.location.toLowerCase().contains(searchLower) ||
+              company.website.toLowerCase().contains(searchLower);
         }).toList();
-      } else if (isFilterActive) {
-        // Filter only
-        displayedResults = allCompanies
-            .where((company) => selectedFilters.contains(company.department))
-            .toList();
-      } else if (isSearchActive) {
-        // Search only
-        displayedResults = allCompanies
-            .where((company) =>
-                company.company_name.toLowerCase().contains(searchText.toLowerCase()) ||
-                company.description
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()))
-            .toList();
       } else {
-        // No search/filter - show home
+        // No search - show home
         displayedResults = [];
       }
 
@@ -109,19 +92,30 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
   }
 
   void _applySorting() {
+    // Sort the appropriate list based on current view
+    List<CompanyModel> listToSort;
+    
+    if (isSearchActive) {
+      listToSort = displayedResults;
+    } else if (isSortActive) {
+      listToSort = allCompanies;
+    } else {
+      return; // No sorting needed
+    }
+    
     switch (sortOrder) {
       case 'oldest':
-        displayedResults.sort((a, b) => a.id.compareTo(b.id));
+        listToSort.sort((a, b) => a.id.compareTo(b.id));
         break;
       case 'ratingHigh':
-        displayedResults.sort((a, b) => b.overallRating.compareTo(a.overallRating));
+        listToSort.sort((a, b) => b.overallRating.compareTo(a.overallRating));
         break;
       case 'ratingLow':
-        displayedResults.sort((a, b) => a.overallRating.compareTo(b.overallRating));
+        listToSort.sort((a, b) => a.overallRating.compareTo(b.overallRating));
         break;
       case 'newest':
       default:
-        displayedResults.sort((a, b) => b.id.compareTo(a.id));
+        listToSort.sort((a, b) => b.id.compareTo(a.id));
     }
   }
 
@@ -181,28 +175,6 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: _showFilterDialog,
-                    child: Container(
-                      height: 48,
-                      width: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B6A68),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _showFilterDialog,
-                          borderRadius: BorderRadius.circular(24),
-                          child: const Center(
-                            child: Icon(Icons.filter_list, color: Colors.white, size: 20),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
                     onTap: _showSortDialog,
                     child: Container(
                       height: 48,
@@ -227,8 +199,8 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
               ),
             ),
 
-            // Show results if search/filter is active
-            if (isSearchActive || isFilterActive)
+            // Show results if search is active
+            if (isSearchActive)
               Container(
                 width: double.infinity,
                 color: const Color(0xFF5A5A5A),
@@ -245,7 +217,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   ),
                 ),
               ),
-            if (isSearchActive || isFilterActive)
+            if (isSearchActive)
               if (displayedResults.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -276,8 +248,49 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   ),
                 ),
 
-            // Show home content if no search/filter
-            if (!isSearchActive && !isFilterActive) ...[
+            // Show sorted results when sorting is active (without search)
+            if (isSortActive && !isSearchActive)
+              Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFF5A5A5A),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ALL INTERNSHIPS (${allCompanies.length})',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                    itemCount: allCompanies.length,
+                    itemBuilder: (context, index) {
+                      final company = allCompanies[index];
+                      return _buildHorizontalCompanyCard(company, context);
+                    },
+                  ),
+                ],
+              ),
+
+            // Show home content if no search/sort
+            if (!isSearchActive && !isSortActive) ...[
               // Top 3 Highest Rating Section
               Container(
                 width: double.infinity,
@@ -515,7 +528,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                 ],
               ),
             ),
-            // Logo
+            // Logo and Favorite Button
             Container(
               width: 50,
               height: 50,
@@ -536,6 +549,23 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                     ),
                   );
                 },
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _favoritesManager.toggleFavorite(company.id);
+                });
+              },
+              child: Icon(
+                _favoritesManager.isFavorite(company.id)
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: _favoritesManager.isFavorite(company.id)
+                    ? Colors.red
+                    : Colors.grey[400],
+                size: 20,
               ),
             ),
           ],
@@ -626,6 +656,24 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Favorite Button
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _favoritesManager.toggleFavorite(company.id);
+                  });
+                },
+                child: Icon(
+                  _favoritesManager.isFavorite(company.id)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: _favoritesManager.isFavorite(company.id)
+                      ? Colors.red
+                      : Colors.grey[400],
+                  size: 20,
                 ),
               ),
             ],
@@ -719,6 +767,24 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
+              // Favorite Button
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _favoritesManager.toggleFavorite(company.id);
+                  });
+                },
+                child: Icon(
+                  _favoritesManager.isFavorite(company.id)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: _favoritesManager.isFavorite(company.id)
+                      ? Colors.red
+                      : Colors.grey[400],
+                  size: 20,
+                ),
+              ),
             ],
           ),
         ),
@@ -727,127 +793,6 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
   }
 
   void _showSortDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1B6A68),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with close button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'เรียงลำดับ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Color(0xFF1B6A68),
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Sort Options
-                ...sortOptions.entries.map((entry) {
-                  final isSelected = sortOrder == entry.key;
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          sortOrder = entry.key;
-                          _applySorting();
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFF1B6A68)
-                                    : Colors.transparent,
-                                border: Border.all(
-                                  color: const Color(0xFF1B6A68),
-                                  width: 2,
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: isSelected
-                                  ? const Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 14,
-                                    )
-                                  : null,
-                            ),
-                            Expanded(
-                              child: Text(
-                                entry.value,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: 'Inter',
-                                  color: Color(0xFF1B6A68),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showFilterDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -872,7 +817,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Internship Filter',
+                          'เรียงลำดับ',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -899,22 +844,27 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Filter Options
-                    ...filterOptions.map((option) {
-                      final isSelected = selectedFilters.contains(option);
+                    // Sort Options
+                    ...sortOptions.entries.map((entry) {
+                      final isSelected = sortOrder == entry.key;
                       return Padding(
                         padding:
                             const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: GestureDetector(
                           onTap: () {
-                            setStateDialog(() {
-                              if (isSelected) {
-                                selectedFilters.remove(option);
+                            setState(() {
+                              if (isSelected && isSortActive) {
+                                // If selecting the same sort option again, toggle off
+                                isSortActive = false;
+                                sortOrder = 'newest';
                               } else {
-                                selectedFilters.add(option);
+                                // Select new sort option
+                                sortOrder = entry.key;
+                                isSortActive = true;
+                                _applySorting();
                               }
                             });
-                            _updateDisplay();
+                            Navigator.pop(context);
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -930,7 +880,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color: isSelected
+                                    color: isSelected && isSortActive
                                         ? const Color(0xFF1B6A68)
                                         : Colors.transparent,
                                     border: Border.all(
@@ -939,7 +889,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                                     ),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: isSelected
+                                  child: isSelected && isSortActive
                                       ? const Icon(
                                           Icons.check,
                                           color: Colors.white,
@@ -949,7 +899,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    option,
+                                    entry.value,
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontFamily: 'Inter',

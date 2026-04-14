@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../models/company_model.dart';
+import '../../models/favorites_manager.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common_buttons.dart';
 
-class InternshipDetailScreen extends StatelessWidget {
+class InternshipDetailScreen extends StatefulWidget {
   final CompanyModel company;
 
   const InternshipDetailScreen({
     super.key,
     required this.company,
   });
+
+  @override
+  State<InternshipDetailScreen> createState() => _InternshipDetailScreenState();
+}
+
+class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
+  final FavoritesManager _favoritesManager = FavoritesManager();
 
   @override
   Widget build(BuildContext context) {
@@ -28,33 +36,57 @@ class InternshipDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: AppTheme.lightGrey,
-                    ),
-                    child: Image.network(
-                      company.logo_url,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
+                  // Logo and Favorite Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Logo
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
                           color: AppTheme.lightGrey,
-                          child: const Icon(
-                            Icons.business,
-                            color: AppTheme.primaryTeal,
-                            size: 50,
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                        child: Image.network(
+                          widget.company.logo_url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: AppTheme.lightGrey,
+                              child: const Icon(
+                                Icons.business,
+                                color: AppTheme.primaryTeal,
+                                size: 50,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      // Favorite Button
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _favoritesManager.toggleFavorite(widget.company.id);
+                          });
+                        },
+                        child: Icon(
+                          _favoritesManager.isFavorite(widget.company.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: _favoritesManager.isFavorite(widget.company.id)
+                              ? Colors.red
+                              : Colors.grey[400],
+                          size: 28,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   // Company Info
                   Text(
-                    company.company_name,
+                    widget.company.company_name,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -63,7 +95,7 @@ class InternshipDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    company.department,
+                    widget.company.department,
                     style: const TextStyle(
                       fontSize: 16,
                       color: AppTheme.primaryTeal,
@@ -79,7 +111,7 @@ class InternshipDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        company.location,
+                        widget.company.location,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppTheme.head2,
@@ -98,7 +130,7 @@ class InternshipDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${company.overallRating}',
+                        '${widget.company.overallRating}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -107,7 +139,7 @@ class InternshipDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${company.reviewCount} reviews',
+                        '${widget.company.reviewCount} reviews',
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppTheme.head2,
@@ -135,7 +167,7 @@ class InternshipDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    company.description,
+                    widget.company.description,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppTheme.head2,
@@ -164,11 +196,11 @@ class InternshipDetailScreen extends StatelessWidget {
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: company.reviews.length,
+                    itemCount: widget.company.reviews.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      final review = company.reviews[index];
+                      final review = widget.company.reviews[index];
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
