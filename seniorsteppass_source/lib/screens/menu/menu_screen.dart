@@ -166,6 +166,15 @@ class _MenuScreenState extends State<MenuScreen> {
           
           const Spacer(),
 
+          // Loading Indicator while checking admin status
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
+              ),
+            ),
+
           // Back to Admin Button
           if (isAdmin && !isLoading)
             Padding(
