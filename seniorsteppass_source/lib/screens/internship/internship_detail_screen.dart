@@ -126,6 +126,67 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
     }
   }
 
+  Widget _buildCategoryRating(String label, double rating, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 3),
+          ),
+          child: Center(
+            child: Text(
+              '${rating.toStringAsFixed(1)}',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppTheme.head2),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmallRatingChip(String label, double rating) {
+    final stars = List.generate(
+      5,
+      (index) => Icon(
+        index < rating ? Icons.star : Icons.star_border,
+        size: 10,
+        color: Colors.amber,
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 9, color: AppTheme.head2),
+          ),
+          const SizedBox(width: 2),
+          ...stars,
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -322,14 +383,14 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Reviews',
+                    'Internship Feedback',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.head,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   StreamBuilder<QuerySnapshot>(
                     stream: _firestore
                         .collection('reviews')
@@ -357,83 +418,193 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
 
                       final reviews = snapshot.data!.docs;
 
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: reviews.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final reviewData =
-                              reviews[index].data() as Map<String, dynamic>;
-                          final rating = reviewData['rating'] ?? 0;
-                          final reviewText = reviewData['review_text'] ?? '';
-                          final createdAt = reviewData['created_at'] ?? '';
+                      // Calculate average ratings
+                      double avgWorkload = 0, avgEnvironment = 0, avgMentorship = 0, avgBenefits = 0;
+                      int count = reviews.length;
+                      
+                      if (count > 0) {
+                        for (var doc in reviews) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          avgWorkload += (data['workload_rating'] as num?)?.toDouble() ?? 0;
+                          avgEnvironment += (data['environment_rating'] as num?)?.toDouble() ?? 0;
+                          avgMentorship += (data['mentorship_rating'] as num?)?.toDouble() ?? 0;
+                          avgBenefits += (data['benefits_rating'] as num?)?.toDouble() ?? 0;
+                        }
+                        avgWorkload /= count;
+                        avgEnvironment /= count;
+                        avgMentorship /= count;
+                        avgBenefits /= count;
+                      }
 
-                          return Container(
-                            padding: const EdgeInsets.all(12),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Category Ratings
+                          Container(
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppTheme.white,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const Text(
+                                  'Categories',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.head,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
-                                    Text(
-                                      reviewData['department'] ?? 'Intern',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.head,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.star_rounded,
-                                          color: Color(0xFFFFB72B),
-                                          size: 14,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '$rating/5',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppTheme.head,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    _buildCategoryRating('Workload', avgWorkload, Colors.green),
+                                    _buildCategoryRating('Environment', avgEnvironment, Colors.red),
+                                    _buildCategoryRating('Mentorship', avgMentorship, Colors.green),
+                                    _buildCategoryRating('Benefits', avgBenefits, Colors.amber),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  createdAt,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.head3,
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Average Rating Section
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'แนวคะแนนรวม (Average Rating)',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.head,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  reviewText,
+                                  'Workload: ${avgWorkload.toStringAsFixed(1)}/5 | Environment: ${avgEnvironment.toStringAsFixed(1)}/5\nMentorship: ${avgMentorship.toStringAsFixed(1)}/5 | Benefits: ${avgBenefits.toStringAsFixed(1)}/5',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: AppTheme.head2,
-                                    height: 1.4,
                                   ),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Reviews List
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: reviews.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final reviewData =
+                                  reviews[index].data() as Map<String, dynamic>;
+                              final workloadRating = reviewData['workload_rating'] as num? ?? 0;
+                              final environmentRating = reviewData['environment_rating'] as num? ?? 0;
+                              final mentorshipRating = reviewData['mentorship_rating'] as num? ?? 0;
+                              final benefitsRating = reviewData['benefits_rating'] as num? ?? 0;
+                              final reviewText = reviewData['review_text'] ?? '';
+                              final createdAt = reviewData['created_at'] ?? '';
+                              final department = reviewData['department'] ?? 'Intern';
+
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Header
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          department,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.head,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              color: Color(0xFFFFB72B),
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${((workloadRating.toDouble() + environmentRating.toDouble() + mentorshipRating.toDouble() + benefitsRating.toDouble()) / 4).toStringAsFixed(1)}',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppTheme.head,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    
+                                    // Category Ratings for this review
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: [
+                                        _buildSmallRatingChip('Workload', workloadRating.toDouble()),
+                                        _buildSmallRatingChip('Environment', environmentRating.toDouble()),
+                                        _buildSmallRatingChip('Mentorship', mentorshipRating.toDouble()),
+                                        _buildSmallRatingChip('Benefits', benefitsRating.toDouble()),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    
+                                    // Timestamp
+                                    Text(
+                                      createdAt,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppTheme.head3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    
+                                    // Review text
+                                    Text(
+                                      reviewText,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.head2,
+                                        height: 1.4,
+                                      ),
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       );
                     },
                   ),

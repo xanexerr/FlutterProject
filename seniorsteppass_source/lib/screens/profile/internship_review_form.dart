@@ -225,15 +225,6 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Internship Feedback',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                     const SizedBox(height: 16),
                     _buildRatingCategory(
                       'Workload',
