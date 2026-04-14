@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seniorsteppass_source/models/project_model.dart';
-import 'package:seniorsteppass_source/models/review_model.dart';
 import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
@@ -47,7 +47,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           data.intern_list!.map((item) async {
             final companyName = item['company'] ?? '';
             final logo = await _dbService.getCompanyLogo(companyName);
+            
+            // Fetch internship document ID from Firestore
+            String internshipId = '';
+            try {
+              final query = await FirebaseFirestore.instance
+                  .collection('internships')
+                  .where('company_name', isEqualTo: companyName)
+                  .limit(1)
+                  .get();
+              if (query.docs.isNotEmpty) {
+                internshipId = query.docs.first.id;
+              }
+            } catch (e) {
+              print('Error fetching internship ID: $e');
+            }
+            
             return {
+              'id': internshipId,
               'company': companyName,
               'department': item['role'] ?? 'Intern',
               'logo_url': logo,
@@ -574,6 +591,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Build Internship Card Widget
   Widget _buildInternshipCard(Map<String, dynamic> internship) {
+    final internshipId = internship['id'] as String? ?? '';
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -640,6 +658,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => InternshipReviewForm(
+                    internshipId: internshipId,
                     companyName: internship['company'] ?? 'N/A',
                     role: internship['department'] ?? 'Intern',
                   ),

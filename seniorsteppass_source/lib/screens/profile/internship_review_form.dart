@@ -1,14 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/current_user_service.dart';
 
 class InternshipReviewForm extends StatefulWidget {
+  final String internshipId;
   final String companyName;
   final String role;
 
   const InternshipReviewForm({
     super.key,
+    required this.internshipId,
     required this.companyName, 
     required this.role
   });
@@ -21,6 +23,42 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
   final _formKey = GlobalKey<FormState>();
   double _rating = 0;
   final _reviewController = TextEditingController();
+  bool _isLoading = false;
+  String? _existingReviewId;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingReview();
+  }
+
+  Future<void> _checkExistingReview() async {
+    try {
+      final currentUserService = CurrentUserService();
+      final studentId = currentUserService.getCurrentUserId();
+      if (studentId == null) return;
+
+      final query = await FirebaseFirestore.instance
+          .collection('reviews')
+          .where('student_id', isEqualTo: studentId)
+          .where('internship_id', isEqualTo: widget.internshipId)
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        final reviewData = query.docs[0].data();
+        setState(() {
+          _existingReviewId = query.docs[0].id;
+          _rating = (reviewData['rating'] as num?)?.toDouble() ?? 0.0;
+          _reviewController.text = reviewData['review_text'] ?? '';
+          _isEditing = true;
+        });
+      }
+    } catch (e) {
+      print('Error checking existing review: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -135,30 +173,65 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: _isLoading ? null : () async {
                     if (_formKey.currentState!.validate() && _rating > 0) {
-                      final reviewData = {
-                        'company_name': widget.companyName,
-                        'department': widget.role,
-                        'rating': _rating,
-                        'review_text': _reviewController.text,
-                        'user_id': FirebaseAuth.instance.currentUser?.uid ?? 'anonymous',
-                        'created_at': Timestamp.now(),
-                      };
+                      setState(() => _isLoading = true);
 
                       try {
-                        await FirebaseFirestore.instance.collection('reviews').add(reviewData);
+                        final currentUserService = CurrentUserService();
+                        final studentId = currentUserService.getCurrentUserId();
+                        
+                        if (studentId == null) {
+                          throw Exception('User not authenticated');
+                        }
+
+                        final reviewData = {
+                          'student_id': studentId,
+                          'internship_id': widget.internshipId,
+                          'company_name': widget.companyName,
+                          'department': widget.role,
+                          'rating': _rating,
+                          'review_text': _reviewController.text,
+                          'status': 'Pending',
+                          'updated_at': Timestamp.now(),
+                        };
+
+                        if (_isEditing && _existingReviewId != null) {
+                          // UPDATE existing review
+                          await FirebaseFirestore.instance
+                              .collection('reviews')
+                              .doc(_existingReviewId)
+                              .update(reviewData);
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Review updated successfully!')),
+                            );
+                          }
+                        } else {
+                          // CREATE new review
+                          reviewData['created_at'] = Timestamp.now();
+                          await FirebaseFirestore.instance
+                              .collection('reviews')
+                              .add(reviewData);
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Review submitted successfully!')),
+                            );
+                          }
+                        }
 
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Review submitted successfully!')),
-                          );
                           Navigator.pop(context);
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to submit review. Please try again later.')),
-                        );
+                        setState(() => _isLoading = false);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
                       }
                     } else if (_rating == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -172,14 +245,20 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Submit Review',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: AppTheme.white),
+                        )
+                      : Text(
+                          _isEditing ? 'Update Review' : 'Submit Review',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.white,
+                          ),
+                        ),
                 ),
               ),
             ],
