@@ -478,6 +478,39 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                 .collection('reviews')
                 .add(reviewData);
 
+            // Update internship reviewCount and overallRating
+            try {
+              final internshipDoc = await FirebaseFirestore.instance
+                  .collection('internships')
+                  .doc(widget.internshipId)
+                  .get();
+
+              if (internshipDoc.exists) {
+                final data = internshipDoc.data() as Map<String, dynamic>;
+                final currentReviewCount = (data['reviewCount'] as num?)?.toInt() ?? 0;
+                final currentRating = (data['overallRating'] as num?)?.toDouble() ?? 0.0;
+
+                // Calculate new review average
+                final newReviewAverage = 
+                    (_workloadRating + _environmentRating + _mentorshipRating + _benefitsRating) / 4;
+
+                // Calculate updated overall rating
+                final updatedRating = (newReviewAverage + currentRating) / 2;
+
+                // Update internship document
+                await FirebaseFirestore.instance
+                    .collection('internships')
+                    .doc(widget.internshipId)
+                    .update({
+                      'reviewCount': currentReviewCount + 1,
+                      'overallRating': updatedRating,
+                    });
+              }
+            } catch (e) {
+              print('Error updating internship stats: $e');
+              // Continue even if update fails
+            }
+
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
