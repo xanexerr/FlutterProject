@@ -4,9 +4,43 @@ import '../auth/login_screen.dart';
 import '../../contact_us_screen.dart';
 import '../../widgets/common_buttons.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../../services/current_user_service.dart';
 
-class MenuScreen extends StatelessWidget {
+class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
+
+  @override
+  State<MenuScreen> createState() => _MenuScreenState();
+}
+
+class _MenuScreenState extends State<MenuScreen> {
+  bool isAdmin = false;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminRole();
+  }
+
+  Future<void> _checkAdminRole() async {
+    try {
+      final userData = await CurrentUserService().fetchCurrentUserData();
+      if (mounted) {
+        setState(() {
+          isAdmin = userData?.role == 'Admin';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isAdmin = false;
+          isLoading = false;
+        });
+      }
+    }
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -133,37 +167,38 @@ class MenuScreen extends StatelessWidget {
           const Spacer(),
 
           // Back to Admin Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.info,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+          if (isAdmin && !isLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.info,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    elevation: 0,
                   ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Admin Dashboard',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    color: AppTheme.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  child: const Text(
+                    'Admin Dashboard',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      color: AppTheme.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
 
           // Log Out Button
           Padding(
