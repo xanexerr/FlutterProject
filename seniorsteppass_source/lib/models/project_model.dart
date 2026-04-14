@@ -23,12 +23,7 @@ class TeamMember {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'role': role,
-      'profilePic': profilePic,
-    };
+    return {'id': id, 'name': name, 'role': role, 'profilePic': profilePic};
   }
 }
 
@@ -45,6 +40,7 @@ class ProjectModel {
   final String status; // 'Active', 'Completed', 'Archived'
   final int views;
   final int likes;
+  final String links;
 
   ProjectModel({
     required this.id,
@@ -59,13 +55,16 @@ class ProjectModel {
     required this.status,
     required this.views,
     required this.likes,
+    required this.links
   });
 
   // Convert from JSON
   factory ProjectModel.fromJson(Map<String, dynamic> json, String docId) {
-    var membersList = (json['members'] as List<dynamic>?)
-        ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
-        .toList() ?? [];
+    var membersList =
+        (json['members'] as List<dynamic>?)
+            ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
 
     return ProjectModel(
       id: docId,
@@ -76,12 +75,13 @@ class ProjectModel {
       tags: List<String>.from(json['tags'] ?? []),
       categories: List<String>.from(json['categories'] ?? []),
       members: membersList,
-      timestamp: json['timestamp'] != null 
-        ? (json['timestamp'] as Timestamp).toDate() 
-        : DateTime.now(),
+      timestamp: json['timestamp'] != null
+          ? (json['timestamp'] as Timestamp).toDate()
+          : DateTime.now(),
       status: json['status'] ?? 'Active',
       views: json['views'] ?? 0,
       likes: json['likes'] ?? 0,
+      links: json['links'] ?? '',
     );
   }
 
@@ -99,6 +99,7 @@ class ProjectModel {
       'status': status,
       'views': views,
       'likes': likes,
+      'links': links
     };
   }
 }

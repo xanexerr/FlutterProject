@@ -325,6 +325,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 .toList();
 
             return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 80),
               itemCount: usersFromFirebase.length,
               itemBuilder: (context, index) {
                 final user = usersFromFirebase[index];

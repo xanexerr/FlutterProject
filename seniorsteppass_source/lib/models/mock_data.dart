@@ -184,6 +184,7 @@ final List<ProjectModel> mockProjects = [
     status: 'Active',
     views: 1250,
     likes: 340,
+    links: ''
   ),
   ProjectModel(
     id: 'p2',
@@ -211,6 +212,7 @@ final List<ProjectModel> mockProjects = [
     status: 'Active',
     views: 890,
     likes: 256,
+    links: ''
   ),
   ProjectModel(
     id: 'p3',
@@ -248,6 +250,7 @@ final List<ProjectModel> mockProjects = [
     status: 'Completed',
     views: 2150,
     likes: 542,
+    links: ''
   ),
   ProjectModel(
     id: 'p4',
@@ -275,6 +278,7 @@ final List<ProjectModel> mockProjects = [
     status: 'Active',
     views: 650,
     likes: 182,
+    links: ''
   ),
   ProjectModel(
     id: 'p5',
@@ -317,6 +321,7 @@ final List<ProjectModel> mockProjects = [
     status: 'Active',
     views: 3200,
     likes: 890,
+    links: ''
   ),
 ];
 
@@ -329,7 +334,7 @@ final List<UserModel> mockUsers = [
     faculty: 'Faculty of Engineering',
     role: 'User',
     email: 'somchai@student.chula.ac.th',
-    bio: 'Mobile developer passionate about Flutter and cross-platform development.',
+    // bio: 'Mobile developer passionate about Flutter and cross-platform development.',
   ),
   UserModel(
     id: 'u2',
@@ -338,7 +343,7 @@ final List<UserModel> mockUsers = [
     faculty: 'Faculty of Science',
     role: 'User',
     email: 'niran@student.chula.ac.th',
-    bio: 'AI and Machine Learning enthusiast. Currently learning deep learning.',
+    // bio: 'AI and Machine Learning enthusiast. Currently learning deep learning.',
   ),
   UserModel(
     id: 'u3',
@@ -347,6 +352,6 @@ final List<UserModel> mockUsers = [
     faculty: 'Faculty of Engineering',
     role: 'Admin',
     email: 'admin@seniorstp.com',
-    bio: 'Platform administrator.',
+    // bio: 'Platform administrator.',
   ),
 ];

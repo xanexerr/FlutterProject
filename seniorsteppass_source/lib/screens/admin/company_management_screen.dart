@@ -173,6 +173,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
+          padding: const EdgeInsets.only(bottom: 80),
           itemCount: _companies.length,
           itemBuilder: (context, index) {
             final company = _companies[index];
