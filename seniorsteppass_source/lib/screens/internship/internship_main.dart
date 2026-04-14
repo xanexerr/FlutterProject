@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/mock_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/company_model.dart';
 import 'internship_detail_screen.dart';
 
 class InternshipMainScreen extends StatefulWidget {
@@ -14,7 +15,9 @@ class InternshipMainScreen extends StatefulWidget {
 class _InternshipMainScreenState extends State<InternshipMainScreen> {
   final TextEditingController _searchController = TextEditingController();
   late Set<String> selectedFilters;
-  List<dynamic> displayedResults = [];
+  List<CompanyModel> allCompanies = [];
+  List<CompanyModel> displayedResults = [];
+  bool isLoading = true;
   bool isSearchActive = false;
   bool isFilterActive = false;
   String sortOrder = 'newest'; // newest, oldest, ratingHigh, ratingLow
@@ -38,7 +41,24 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     super.initState();
     selectedFilters = widget.initialFilters ?? {};
     _searchController.addListener(_updateDisplay);
-    _updateDisplay();
+    _fetchCompanies();
+  }
+
+  Future<void> _fetchCompanies() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('internships').get();
+      final companies = snapshot.docs.map((doc) => CompanyModel.fromJson(doc.data(), doc.id)).toList();
+      setState(() {
+        allCompanies = companies;
+        isLoading = false;
+        _updateDisplay();
+      });
+    } catch (e) {
+      print('Error fetching companies: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -48,6 +68,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
   }
 
   void _updateDisplay() {
+    if (!mounted) return;
     setState(() {
       String searchText = _searchController.text.trim();
       isSearchActive = searchText.isNotEmpty;
@@ -55,7 +76,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
 
       if (isFilterActive && isSearchActive) {
         // Combined filter + search
-        displayedResults = mockCompanies.where((company) {
+        displayedResults = allCompanies.where((company) {
           bool matchesFilter = selectedFilters.contains(company.department);
           bool matchesSearch = company.company_name
                   .toLowerCase()
@@ -65,12 +86,12 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
         }).toList();
       } else if (isFilterActive) {
         // Filter only
-        displayedResults = mockCompanies
+        displayedResults = allCompanies
             .where((company) => selectedFilters.contains(company.department))
             .toList();
       } else if (isSearchActive) {
         // Search only
-        displayedResults = mockCompanies
+        displayedResults = allCompanies
             .where((company) =>
                 company.company_name.toLowerCase().contains(searchText.toLowerCase()) ||
                 company.description
@@ -110,6 +131,12 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -379,9 +406,9 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   horizontal: 16.0,
                   vertical: 12.0,
                 ),
-                itemCount: mockCompanies.length,
+                itemCount: allCompanies.length,
                 itemBuilder: (context, index) {
-                  final company = mockCompanies[index];
+                  final company = allCompanies[index];
                   return _buildHorizontalCompanyCard(company, context);
                 },
               ),
@@ -392,19 +419,19 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     );
   }
 
-  List<dynamic> _getTop3ByRating() {
-    final sorted = [...mockCompanies];
+  List<CompanyModel> _getTop3ByRating() {
+    final sorted = [...allCompanies];
     sorted.sort((a, b) => b.overallRating.compareTo(a.overallRating));
     return sorted.take(3).toList();
   }
 
-  List<dynamic> _getTop3ByReviews() {
-    final sorted = [...mockCompanies];
+  List<CompanyModel> _getTop3ByReviews() {
+    final sorted = [...allCompanies];
     sorted.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
     return sorted.take(3).toList();
   }
 
-  Widget _buildInlineCompanyItem(dynamic company, BuildContext context, int rank) {
+  Widget _buildInlineCompanyItem(CompanyModel company, BuildContext context, int rank) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -444,7 +471,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    company.name,
+                    company.company_name,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -497,7 +524,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                 color: const Color(0xFFD9D9D9),
               ),
               child: Image.network(
-                company.logoUrl,
+                company.logo_url,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -517,7 +544,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     );
   }
 
-  Widget _buildHorizontalCompanyCard(dynamic company, BuildContext context) {
+  Widget _buildHorizontalCompanyCard(CompanyModel company, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -548,7 +575,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   color: const Color(0xFFD9D9D9),
                 ),
                 child: Image.network(
-                  company.logoUrl,
+                  company.logo_url,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
@@ -569,7 +596,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      company.name,
+                      company.company_name,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -639,7 +666,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   color: const Color(0xFFD9D9D9),
                 ),
                 child: Image.network(
-                  company.logoUrl,
+                  company.logo_url,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
@@ -660,7 +687,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      company.name,
+                      company.company_name,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

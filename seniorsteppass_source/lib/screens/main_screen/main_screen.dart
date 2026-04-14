@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../landing_page.dart';
-import '../internship/internship_list_screen.dart';
+import '../internship/internship_main.dart';
 import '../../widgets/common_buttons.dart';
 import '../project_main/project_main.dart';
 import '../project_main/favorites_screen.dart';
@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
   late final List<Widget> _pages = [
     const LandingPage(),
     ProjectMainScreen(initialFilters: widget.projectFilters),
-    const InternshipListScreen(),
+    const InternshipMainScreen(),
     const FavoritesScreen(),
     const ProfileScreen(), // Profile Screen
   ];

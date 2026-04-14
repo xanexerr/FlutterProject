@@ -30,15 +30,14 @@ class CompanyModel {
   factory CompanyModel.fromJson(Map<String, dynamic> json, String docId) {
     return CompanyModel(
       id: docId,
-      company_name: json['company_name'] ?? '',
-      department: json['department'] ?? '',
-      logo_url: json['logo_url'] ?? '',
-      description: json['description'] ?? '',
-      overallRating: (json['overallRating'] as num?)?.toDouble() ?? 0.0,
-      reviewCount: json['reviewCount'] ?? 0,
-      // reviews: reviewsList,
-      location: json['location'] ?? '',
-      website: json['website'] ?? '',
+      company_name: json['company_name']?.toString() ?? '',
+      department: json['department']?.toString() ?? '',
+      logo_url: json['logo_url']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      overallRating: double.tryParse(json['overallRating']?.toString() ?? '0.0') ?? 0.0,
+      reviewCount: int.tryParse(json['reviewCount']?.toString() ?? '0') ?? 0,
+      location: json['location']?.toString() ?? '',
+      website: json['website']?.toString() ?? '',
       reviews: [],
     );
   }
