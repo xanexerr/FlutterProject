@@ -157,61 +157,6 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
     );
   }
 
-  Widget _buildSmallRatingChip(String label, double rating) {
-    final stars = List.generate(
-      5,
-      (index) => Icon(
-        index < rating ? Icons.star : Icons.star_border,
-        size: 10,
-        color: Colors.amber,
-      ),
-    );
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 9, color: AppTheme.head2),
-          ),
-          const SizedBox(width: 2),
-          ...stars,
-        ],
-      ),
-    );
-  }
-
-  String _formatTimestamp(dynamic timestamp) {
-    if (timestamp is String) return timestamp;
-    if (timestamp == null) return '';
-    
-    DateTime dateTime;
-    if (timestamp is Timestamp) {
-      dateTime = timestamp.toDate();
-    } else if (timestamp is DateTime) {
-      dateTime = timestamp;
-    } else {
-      return '';
-    }
-
-    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'];
-    final month = monthNames[dateTime.month - 1];
-    final day = dateTime.day;
-    final year = dateTime.year;
-    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final second = dateTime.second.toString().padLeft(2, '0');
-    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
-    return '$month $day, $year at $hour:$minute:$second $period UTC+7';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,19 +170,18 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
             Container(
               width: double.infinity,
               color: AppTheme.white,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo and Favorite Button
+                  // Logo, Company Info, and Favorite Button Row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Logo
                       Container(
-                        width: 100,
-                        height: 100,
+                        width: 80,
+                        height: 80,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           color: AppTheme.lightGrey,
@@ -251,12 +195,59 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                               child: const Icon(
                                 Icons.business,
                                 color: AppTheme.primaryTeal,
-                                size: 50,
+                                size: 40,
                               ),
                             );
                           },
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      // Company Info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Company Name
+                            Text(
+                              widget.company.company_name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.head,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            // Department
+                            Text(
+                              widget.company.department,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.head2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Categories Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFC107),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Categories',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       // Favorite Button
                       GestureDetector(
                         onTap: () {
@@ -271,71 +262,42 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                           color: _favoritesManager.isFavorite(widget.company.id)
                               ? Colors.red
                               : Colors.grey[400],
-                          size: 28,
+                          size: 24,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Company Info
-                  Text(
-                    widget.company.company_name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.head,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.company.department,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.primaryTeal,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  
+                  // Location and Rating Info
                   Row(
                     children: [
                       const Icon(
                         Icons.location_on,
                         color: AppTheme.primaryTeal,
-                        size: 16,
+                        size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         widget.company.location,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: AppTheme.head2,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Rating
-                  Row(
-                    children: [
+                      const SizedBox(width: 16),
                       const Icon(
                         Icons.star_rounded,
                         color: Color(0xFFFFB72B),
-                        size: 20,
+                        size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${widget.company.overallRating}',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.head,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${widget.company.reviewCount} reviews',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.head2,
                         ),
                       ),
                     ],
@@ -343,7 +305,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             // Description
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -508,12 +470,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                             itemBuilder: (context, index) {
                               final reviewData =
                                   reviews[index].data() as Map<String, dynamic>;
-                              final workloadRating = reviewData['workload_rating'] as num? ?? 0;
-                              final environmentRating = reviewData['environment_rating'] as num? ?? 0;
-                              final mentorshipRating = reviewData['mentorship_rating'] as num? ?? 0;
-                              final benefitsRating = reviewData['benefits_rating'] as num? ?? 0;
                               final reviewText = reviewData['review_text'] ?? '';
-                              final createdAt = _formatTimestamp(reviewData['created_at']);
                               final department = reviewData['department'] ?? 'Intern';
 
                               return Container(
@@ -525,65 +482,70 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Header
+                                    // Header: Avatar and Name
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          department,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppTheme.head,
+                                        // Avatar
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey[300],
                                           ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.star_rounded,
-                                              color: Color(0xFFFFB72B),
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${((workloadRating.toDouble() + environmentRating.toDouble() + mentorshipRating.toDouble() + benefitsRating.toDouble()) / 4).toStringAsFixed(1)}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
+                                          child: Center(
+                                            child: Text(
+                                              'FL',
+                                              style: TextStyle(
+                                                fontSize: 12,
                                                 fontWeight: FontWeight.bold,
-                                                color: AppTheme.head,
+                                                color: Colors.grey[700],
                                               ),
                                             ),
-                                          ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        // Name and Info
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Firstname Lastname',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppTheme.head,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                department,
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: AppTheme.head2,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Star Rating
+                                        Row(
+                                          children: List.generate(
+                                            5,
+                                            (i) => Icon(
+                                              Icons.star,
+                                              size: 12,
+                                              color: i < 5 ? Colors.amber : Colors.grey[300],
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
                                     
-                                    // Category Ratings for this review
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 4,
-                                      children: [
-                                        _buildSmallRatingChip('Workload', workloadRating.toDouble()),
-                                        _buildSmallRatingChip('Environment', environmentRating.toDouble()),
-                                        _buildSmallRatingChip('Mentorship', mentorshipRating.toDouble()),
-                                        _buildSmallRatingChip('Benefits', benefitsRating.toDouble()),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    
-                                    // Timestamp
-                                    Text(
-                                      createdAt,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: AppTheme.head3,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    
-                                    // Review text
+                                    // Review Text
                                     Text(
                                       reviewText,
                                       style: const TextStyle(
@@ -591,7 +553,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                         color: AppTheme.head2,
                                         height: 1.4,
                                       ),
-                                      maxLines: 4,
+                                      maxLines: 5,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
