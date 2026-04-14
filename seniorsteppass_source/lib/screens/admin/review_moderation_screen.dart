@@ -129,7 +129,7 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
 
               final String companyName = reviewData['company_name'] ?? 'Unknown Company';
               final String reviewText = reviewData['review_text'] ?? '';
-              final int rating = reviewData['rating'] ?? 0;
+              final num rating = reviewData['rating'] ?? 0;
               final String userId = reviewData['user_id'] ?? 'Unknown User';
               final String createdAt = _formatTimestamp(reviewData['created_at']);
               final String status = reviewData['status'] ?? 'Pending';
