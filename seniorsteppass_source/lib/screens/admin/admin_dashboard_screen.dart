@@ -9,8 +9,6 @@ import 'project_management_screen.dart';
 import 'company_management_screen.dart';
 import 'review_moderation_screen.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 

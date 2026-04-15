@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/company_model.dart';
 import '../../models/favorites_manager.dart';
 import '../../theme/app_theme.dart';
@@ -33,12 +32,12 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
 
   Future<void> _checkIfSelected() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      final userEmail = CurrentUserService().getCurrentUserEmail();
+      if (userEmail == null) return;
 
       final userDoc = await _firestore
           .collection('users')
-          .where('email', isEqualTo: user.email!)
+          .where('email', isEqualTo: userEmail)
           .limit(1)
           .get();
 
@@ -71,12 +70,12 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      final userEmail = CurrentUserService().getCurrentUserEmail();
+      if (userEmail == null) throw Exception('User not authenticated');
 
       final userQuery = await _firestore
           .collection('users')
-          .where('email', isEqualTo: user.email!)
+          .where('email', isEqualTo: userEmail)
           .limit(1)
           .get();
 
