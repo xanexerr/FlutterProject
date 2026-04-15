@@ -238,6 +238,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final String email = _emailController.text.trim();
     final String password = _passwordController.text.trim();
 
+    print('DEBUG: Login attempt with email: $email');
+
     // Validate input - fields must not be empty
     if (email.isEmpty || password.isEmpty) {
       // Show error message
@@ -271,6 +273,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
+      print('DEBUG: Querying Firestore for email: $email');
+      
       // Query user from Firestore by email
       final userQuery = await FirebaseFirestore.instance
           .collection('users')
@@ -278,10 +282,27 @@ class _LoginScreenState extends State<LoginScreen> {
           .limit(1)
           .get();
 
+      print('DEBUG: Query returned ${userQuery.docs.length} documents');
+      
+      // Debug: Print all users in collection to see what's there
+      if (userQuery.docs.isEmpty) {
+        print('DEBUG: No user found with email: $email');
+        print('DEBUG: Fetching all users to debug...');
+        final allUsers = await FirebaseFirestore.instance
+            .collection('users')
+            .limit(5)
+            .get();
+        print('DEBUG: Total users in collection: ${allUsers.docs.length}');
+        for (var doc in allUsers.docs) {
+          print('DEBUG: User - ${doc.data()}');
+        }
+      }
+
       if (!mounted) return;
       Navigator.pop(context); // Remove loading screen
 
       if (userQuery.docs.isEmpty) {
+        print('DEBUG: User not found for email: $email');
         _showErrorSnackBar(context, 'User not found. Please check your email.');
         return;
       }
@@ -292,11 +313,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final storedPassword = userData['password'] ?? '';
       final role = userData['role'] ?? 'User';
 
+      print('DEBUG: User found - role: $role');
+      print('DEBUG: Password match: ${password == storedPassword}');
+
       // Verify password
       if (password != storedPassword) {
+        print('DEBUG: Password mismatch. Stored: $storedPassword, Input: $password');
         _showErrorSnackBar(context, 'Invalid password. Please try again.');
         return;
       }
+
+      print('DEBUG: Login successful for $email');
 
       // Password is correct, proceed with login
       // Set email dan fetch user data
@@ -307,6 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (isAdminRoute) {
         if (role == 'Admin') {
           // Admin login successful
+          print('DEBUG: Navigating to AdminDashboardScreen');
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
@@ -318,6 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
       } else {
+        print('DEBUG: Navigating to MainScreen');
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -326,11 +355,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
     } catch (e) {
+      print('DEBUG: Login error: $e');
       if (!mounted) return;
       Navigator.pop(context); // Remove loading screen
 
       String errorMessage = 'An unexpected error occurred. Please try again.';
-      print('Login error: $e');
       
       _showErrorSnackBar(context, 'Login failed: $errorMessage');
     }
