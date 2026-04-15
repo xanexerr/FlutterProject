@@ -229,52 +229,107 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ID and Title Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          project.id,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTeal,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            project.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppTheme.head,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                project.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppTheme.head,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'ID: ${project.id}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.primaryTeal,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+                    
+                    // Description Preview
+                    if (project.description.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          project.description,
+                          style: const TextStyle(color: AppTheme.head2, fontSize: 12),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    
+                    // Owner and Metadata Row
                     Row(
                       children: [
-                        const Icon(Icons.person, size: 16, color: AppTheme.head3),
-                        const SizedBox(width: 8),
+                        const Icon(Icons.person, size: 14, color: AppTheme.head3),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            project.owner_id,
-                            style: const TextStyle(color: AppTheme.head2, fontSize: 14),
+                            'Owner: ${project.owner_id}',
+                            style: const TextStyle(color: AppTheme.head2, fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
+                    
+                    // Tags
+                    if (project.tags.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Wrap(
+                          spacing: 6,
+                          children: project.tags.map((tag) => Chip(
+                            label: Text(tag, style: const TextStyle(fontSize: 11)),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
+                          )).toList(),
+                        ),
+                      ),
+                    
+                    // Views and Likes
+                    Row(
+                      children: [
+                        const Icon(Icons.visibility, size: 14, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text('${project.views}', style: const TextStyle(fontSize: 12, color: AppTheme.head2)),
+                        const SizedBox(width: 16),
+                        const Icon(Icons.favorite, size: 14, color: Colors.red),
+                        const SizedBox(width: 4),
+                        Text('${project.likes}', style: const TextStyle(fontSize: 12, color: AppTheme.head2)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    
                     const Divider(color: Colors.black12),
+                    
+                    // Status and Actions Row
                     Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: project.status == 'Active' ? AppTheme.success.withOpacity(0.2) : 
-                                   project.status == 'Completed' ? AppTheme.info.withOpacity(0.2) :
+                            color: project.status == 'Approved' ? AppTheme.success.withOpacity(0.2) : 
+                                   project.status == 'Pending' ? Colors.orange.withOpacity(0.2) :
                                    Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -282,8 +337,8 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                             project.status, 
                             style: TextStyle(
                               fontSize: 12,
-                              color: project.status == 'Active' ? AppTheme.success : 
-                                     project.status == 'Completed' ? AppTheme.info :
+                              color: project.status == 'Approved' ? AppTheme.success : 
+                                     project.status == 'Pending' ? Colors.orange.shade700 :
                                      Colors.grey.shade700,
                               fontWeight: FontWeight.bold
                             )
