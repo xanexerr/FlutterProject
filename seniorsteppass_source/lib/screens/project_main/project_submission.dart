@@ -4,7 +4,7 @@ import '../../theme/app_theme.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/cloudinary_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/current_user_service.dart';
 
 typedef ImagePickerCallback = Future<List<XFile>> Function();
 
@@ -72,46 +72,64 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-    final String currentStudentId = user?.displayName ?? "Unknown";
-
     setState(() => _isLoading = true);
 
     try {
-      String? imageUrl = await _cloudinaryService.uploadImage(
-        _imageFiles.first,
-      );
-      if (imageUrl != null) {
-        // Save project data to Firestore
-        await FirebaseFirestore.instance.collection('projects').add({
-          'name': projectNameController.text.trim(),
-          'description': detailedController.text.trim(),
-          'owner_id': currentStudentId,
-          'image_url': imageUrl,
-          'links': projectLinks,
-          'members': projectMembers,
-          'tags': selectedTags,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
+      // Get current user ID from Firestore
+      final currentUserService = CurrentUserService();
+      await currentUserService.fetchCurrentUserData();
+      final userId = currentUserService.getCurrentUserId();
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Project submitted successfully!')),
-          );
-          Navigator.pop(context);
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Upload all images to Cloudinary
+      final List<String> uploadedImageUrls = [];
+      for (var imageFile in _imageFiles) {
+        final imageUrl = await _cloudinaryService.uploadImage(imageFile);
+        if (imageUrl != null) {
+          uploadedImageUrls.add(imageUrl);
         }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image upload failed')),
-          );
-        }
+      }
+
+      if (uploadedImageUrls.isEmpty) {
+        throw Exception('Failed to upload images');
+      }
+
+      // Save project data to Firestore with PENDING status
+      await FirebaseFirestore.instance.collection('projects').add({
+        'name': projectNameController.text.trim(),
+        'description': detailedController.text.trim(),
+        'owner_id': userId,
+        'image_urls': uploadedImageUrls,
+        'links': projectLinks,
+        'members': projectMembers,
+        'tags': selectedTags,
+        'status': 'Pending', // Waiting for admin approval
+        'views': 0,
+        'likes': 0,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Project submitted! Waiting for admin approval...'),
+            backgroundColor: AppTheme.success,
+          ),
+        );
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error submitting project: $e')));
+        ).showSnackBar(SnackBar(
+          content: Text('Error submitting project: $e'),
+          backgroundColor: AppTheme.bad,
+        ));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

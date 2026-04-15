@@ -67,17 +67,25 @@ class ProjectModel {
         ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
         .toList() ?? [];
 
+    // Handle both old format (image_url) and new format (image_urls)
+    String imageUrl = '';
+    if (json['image_urls'] != null && (json['image_urls'] as List<dynamic>).isNotEmpty) {
+      imageUrl = (json['image_urls'] as List<dynamic>).first as String;
+    } else if (json['image_url'] != null) {
+      imageUrl = json['image_url'] as String;
+    }
+
     return ProjectModel(
       id: docId,
-      title: json['title'] ?? '',
+      title: json['name'] ?? json['title'] ?? '',
       description: json['description'] ?? '',
       owner_id: json['owner_id'] ?? '',
-      image_url: json['image_url'] ?? '',
+      image_url: imageUrl,
       tags: List<String>.from(json['tags'] ?? []),
       categories: List<String>.from(json['categories'] ?? []),
       members: membersList,
-      timestamp: json['timestamp'] != null 
-        ? (json['timestamp'] as Timestamp).toDate() 
+      timestamp: (json['created_at'] ?? json['timestamp']) != null 
+        ? ((json['created_at'] ?? json['timestamp']) as Timestamp).toDate() 
         : DateTime.now(),
       status: json['status'] ?? 'Active',
       views: json['views'] ?? 0,
