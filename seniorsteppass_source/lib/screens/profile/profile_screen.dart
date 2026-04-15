@@ -39,16 +39,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (userEmail != null) {
       // Fetch user data and projects from Firestore
       final data = await _dbService.getUserData(userEmail);
-      // Fetch projects by student ID
-      final List<ProjectModel> projectData = await _dbService.getUserProjects(
-        data.student_id,
-      );
-
-      // Fetch pending project requests count
-      int requestsCount = 0;
+      
+      // Get the current user's doc ID
       String userDocId = '';
       try {
-        // Get the current user's doc to access project_requests subcollection
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .where('email', isEqualTo: userEmail)
@@ -57,6 +51,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         if (userDoc.docs.isNotEmpty) {
           userDocId = userDoc.docs.first.id;
+        }
+      } catch (e) {
+        print('Error fetching user doc ID: $e');
+      }
+
+      // Fetch projects by student ID (projects user created)
+      final List<ProjectModel> projectData = await _dbService.getUserProjects(
+        data.student_id,
+      );
+
+      // Fetch projects user joined (from users/{userDocId}/projects subcollection)
+      List<Map<String, dynamic>> joinedProjects = [];
+      if (userDocId.isNotEmpty) {
+        try {
+          final joinedSnapshot = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userDocId)
+              .collection('projects')
+              .get();
+
+          for (var doc in joinedSnapshot.docs) {
+            final projectDocId = doc['project_id'] as String?;
+            if (projectDocId != null) {
+              try {
+                final projectDoc = await FirebaseFirestore.instance
+                    .collection('projects')
+                    .doc(projectDocId)
+                    .get();
+                
+                if (projectDoc.exists) {
+                  final projectData = projectDoc.data() as Map<String, dynamic>;
+                  projectData['id'] = projectDocId;
+                  joinedProjects.add(projectData);
+                }
+              } catch (e) {
+                print('Error fetching joined project: $e');
+              }
+            }
+          }
+        } catch (e) {
+          print('Error fetching joined projects: $e');
+        }
+      }
+
+      // Fetch pending project requests count
+      int requestsCount = 0;
+      try {
+        if (userDocId.isNotEmpty) {
           final requestsSnapshot = await FirebaseFirestore.instance
               .collection('users')
               .doc(userDocId)
@@ -102,10 +144,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
 
+      // Combine user's own projects with joined projects
+      List<Map<String, dynamic>> allProjects = [
+        ...projectData.map((p) => p.toJson()).toList(),
+        ...joinedProjects,
+      ];
+
       if (mounted) {
         setState(() {
           userData = data.toJson();
-          projects = projectData.map((p) => p.toJson()).toList();
+          projects = allProjects;
           internships = resolvedInternships;
           pendingProjectRequests = requestsCount;
           this.userDocId = userDocId;
