@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/index.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common_buttons.dart';
 
 class CompanyFormScreen extends StatefulWidget {
   final CompanyModel? company;
@@ -122,14 +123,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.lightYellow,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryTeal,
-        foregroundColor: AppTheme.white,
-        title: Text(
-          widget.company != null ? 'Edit Company' : 'Add Company',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+      appBar: const CustomHeader(showBackButton: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

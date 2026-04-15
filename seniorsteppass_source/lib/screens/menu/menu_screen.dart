@@ -73,10 +73,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Container(
-                height: 1,
-                color: AppTheme.head3,
-              ),
+              Container(height: 1, color: AppTheme.head3),
               IntrinsicHeight(
                 child: Row(
                   children: [
@@ -103,16 +100,14 @@ class _MenuScreenState extends State<MenuScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      width: 1,
-                      color: Colors.grey.shade300,
-                    ),
+                    Container(width: 1, color: Colors.grey.shade300),
                     Expanded(
                       child: TextButton(
                         onPressed: () {
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                                builder: (context) => const LoginScreen()),
+                              builder: (context) => const LoginScreen(),
+                            ),
                             (Route<dynamic> route) => false,
                           );
                         },
@@ -153,21 +148,15 @@ class _MenuScreenState extends State<MenuScreen> {
       appBar: const CustomHeader(),
       body: Column(
         children: [
+          const SizedBox(height: 4),
           // Contact US Header
           NavigationMenuItem(
             title: 'Contact US',
             destination: const ContactUsScreen(),
             fontSize: 24,
-            
           ),
-          
-          Container(
-            height: 1, // Divider below Contact US
-            color: AppTheme.head3,
-          ),
-          
-          const Spacer(),
 
+          const SizedBox(height: 4),
           // Loading Indicator while checking admin status
           if (isLoading)
             const Padding(
@@ -179,10 +168,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
           // Admin Dashboard Navigation Item
           if (isAdmin && !isLoading) ...[
-            Container(
-              height: 1,
-              color: AppTheme.head3,
-            ),
+            Container(),
             NavigationMenuItem(
               title: 'Admin Dashboard',
               destination: const AdminDashboardScreen(),
@@ -190,7 +176,7 @@ class _MenuScreenState extends State<MenuScreen> {
               textColor: AppTheme.white,
             ),
           ],
-
+          const Spacer(),
           // Log Out Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),

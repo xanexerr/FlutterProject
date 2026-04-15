@@ -132,7 +132,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
         title: const Text(
           'Request New Workplace',
           style: TextStyle(
-            color: AppTheme.head,
+            color: AppTheme.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -270,7 +270,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _submitRequest,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.white,
+                      backgroundColor: AppTheme.success,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -280,7 +280,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: AppTheme.primary,
+                              color: AppTheme.white,
                               strokeWidth: 2,
                             ),
                           )
@@ -289,7 +289,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.primary,
+                              color: AppTheme.white,
                             ),
                           ),
                   ),
@@ -303,7 +303,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
+                      backgroundColor: AppTheme.bad,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),

@@ -173,7 +173,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
 
               // Description
               Text(
@@ -181,7 +181,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     'The Author has not provided a description for this project yet.',
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Colors.black54,
+                  color: AppTheme.primary,
                   height: 1.5,
                 ),
               ),
@@ -226,7 +226,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFA500),
+                            color: AppTheme.second,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(

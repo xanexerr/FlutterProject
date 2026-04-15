@@ -302,12 +302,12 @@ class _LandingPageState extends State<LandingPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate responsive width based on available space
-        // Default size: 90x100 (width:height ratio = 0.9)
+        // Default size: 110x120 (width:height ratio = 0.917)
         final double baseWidth = 90;
-        final double baseHeight = 100;
+        final double baseHeight = 110;
         final double aspectRatio = baseWidth / baseHeight;
         
-        // Use max 90 width, but scale down on smaller screens
+        // Use max 110 width on normal screens, scale down on smaller screens
         final double cardWidth = constraints.maxWidth > baseWidth 
             ? baseWidth 
             : constraints.maxWidth * 0.85;

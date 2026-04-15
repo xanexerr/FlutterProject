@@ -153,7 +153,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
         title: const Text(
           'Project Submission',
           style: TextStyle(
-            color: AppTheme.head,
+            color: AppTheme.primary,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -185,6 +185,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   controller: projectNameController,
                   decoration: InputDecoration(
                     hintText: 'Enter project name',
+                    hintStyle: TextStyle(color: AppTheme.head2),
                     filled: true,
                     fillColor: AppTheme.white,
                     border: OutlineInputBorder(
@@ -214,6 +215,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   maxLines: 5,
                   decoration: InputDecoration(
                     hintText: 'Enter project details',
+                    hintStyle: TextStyle(color: AppTheme.head2),
                     filled: true,
                     fillColor: AppTheme.white,
                     border: OutlineInputBorder(
@@ -459,7 +461,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppTheme.second
+                                ? AppTheme.head
                                 : AppTheme.lightGrey,
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -546,9 +548,9 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   child: ElevatedButton(
                     onPressed: _submitData,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.success,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     child: const Text(
@@ -570,9 +572,9 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.bad,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     child: const Text(

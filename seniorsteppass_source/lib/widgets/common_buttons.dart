@@ -178,7 +178,7 @@ class NavigationMenuItem extends StatelessWidget {
     required this.destination,
     this.backgroundColor = AppTheme.lightYellow,
     this.textColor = AppTheme.primaryTeal,
-    this.fontSize = 18,
+    this.fontSize = 24,
   });
 
   @override

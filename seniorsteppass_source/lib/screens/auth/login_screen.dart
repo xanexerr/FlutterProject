@@ -273,7 +273,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
-      print('DEBUG: Querying Firestore for email: $email');
+      print('DEBUG: ================================');
+      print('DEBUG: Querying Firestore for email: "$email"');
+      print('DEBUG: Email length: ${email.length}');
+      print('DEBUG: Email bytes: ${email.codeUnits}');
       
       // Query user from Firestore by email
       final userQuery = await FirebaseFirestore.instance
@@ -283,18 +286,22 @@ class _LoginScreenState extends State<LoginScreen> {
           .get();
 
       print('DEBUG: Query returned ${userQuery.docs.length} documents');
+      print('DEBUG: ================================');
       
       // Debug: Print all users in collection to see what's there
       if (userQuery.docs.isEmpty) {
-        print('DEBUG: No user found with email: $email');
-        print('DEBUG: Fetching all users to debug...');
+        print('DEBUG: ❌ No user found with email: "$email"');
+        print('DEBUG: Fetching ALL users from collection...');
         final allUsers = await FirebaseFirestore.instance
             .collection('users')
-            .limit(5)
             .get();
         print('DEBUG: Total users in collection: ${allUsers.docs.length}');
-        for (var doc in allUsers.docs) {
-          print('DEBUG: User - ${doc.data()}');
+        for (var i = 0; i < allUsers.docs.length; i++) {
+          final doc = allUsers.docs[i];
+          final data = doc.data();
+          final emailField = data['email'] ?? 'NO EMAIL FIELD';
+          print('DEBUG: User #${i + 1}: email="$emailField", docId=${doc.id}');
+          print('DEBUG:   Full data: $data');
         }
       }
 
