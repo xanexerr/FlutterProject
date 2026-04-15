@@ -1,93 +1,181 @@
-# SeniorStepPass
+# SeniorStepPass - Senior Project Management System
 
-SeniorStepPass เป็นแอปพลิเคชัน Flutter ที่ช่วยให้นักศึกษา สามารถค้นหา และติดต่อโครงการฝึกงานได้อย่างสะดวก รวมถึงสามารถติดตามความคืบหน้า และอ่านรีวิวจากรุ่นพี่ได้
+A Flutter application that simplifies senior project management and internship tracking for students and administrators.
 
----
+## 🎯 Features
 
-## Features
+### Core Features
+- **User Management** - Admin panel for managing students and user roles
+- **Project Management** - Create, manage, and request projects
+- **Internship Tracking** - Browse and select internship opportunities
+- **Project Requests** - Request to join projects with approval workflow
+- **Review System** - Submit and view internship reviews with ratings
 
-- 👤 **ระบบการตรวจสอบสิทธิ์** - เข้าสู่ระบบอย่างปลอดภัยสำหรับนักศึกษา
-- 🏢 **การค้นหาโครงการ** - ค้นหาและกรองโครงการฝึกงานตามความสนใจ
-- 📋 **รายละเอียดโครงการ** - ดูข้อมูลโครงการ บริษัท และความต้องการอย่างละเอียด
-- ⭐ **ระบบรีวิว** - อ่านประสบการณ์จากรุ่นพี่ที่เข้าร่วมมาแล้ว
-- 📊 **การติดตามความคืบหน้า** - ติดตามสถานะของใบสมัครและโครงการฝึกงาน
-- 💬 **ติดต่อเรา** - ช่องทางติดต่อสำหรับคำถามและข้อสงสัย
+### Recent Updates (Latest Session)
 
----
+#### Image Upload & Display 📸
+- **Internship Reviews**: Upload review images to Cloudinary
+  - Pick images from gallery
+  - Automatic upload on review submission
+  - Square image display (120x120 px)
+  - Tap to expand fullscreen viewer
+  - Error handling with fallback placeholder
 
-## Technologies
+- **Review Display**: Show images in feedback cards
+  - `internship_detail_screen.dart`: Display uploaded review images
+  - Tap image to view fullscreen
+  - Graceful error handling
 
-- **Flutter** - Cross-platform mobile development
-- **Dart** - Programming language
-- **SQLite** - Local database
-- **Provider / State Management** - State management
-- **Material Design 3** - UI/UX design system
+#### Review Rating System ⭐
+- **Unified Rating Calculation**: Calculate average from individual ratings
+  - Workload Rating
+  - Environment Rating
+  - Mentorship Rating
+  - Benefits Rating
+  - Average displayed as star count
+- **Applied to**:
+  - `internship_detail_screen.dart` - Feedback section
+  - `review_moderation_screen.dart` - Admin moderation
+  - Consistent rating display across app
 
----
+#### User Profiles in Reviews 👤
+- Display reviewer's profile picture in feedback cards
+- Show user initials if no profile picture available
+- Graceful fallback to default avatar
+- User name and department display
 
-## 📁 โครงสร้างโปรเจค
+#### Project Management 🚀
+- **Owner Badge**: Red circle with star icon for owned projects
+- **Auto-sync Joined Projects**: 
+  - Automatically sync projects where user is a team member
+  - Check members map in projects collection
+  - Save to `users/{userId}/projects` subcollection
+  - No duplicate projects displayed
+- **Display Joined Projects**: Show both owned and joined projects on profile
+
+**Previous Features:**
+- Firebase Firestore integration
+- Cloud Storage for project/company images
+- Responsive design
+- Admin moderation dashboard
+
+## 🏗️ Project Structure
 
 ```
 lib/
-├── main.dart                    # Entry point ของแอป
-├── models/                      # Data models
-│   ├── user_model.dart
-│   ├── company_model.dart
+├── models/
 │   ├── project_model.dart
-│   ├── review_model.dart
-│   └── index.dart
-├── screens/                     # UI screens
-│   ├── auth/                    # Authentication screens
-│   ├── internship/              # Internship program screens
-│   ├── main_screen/             # Home screen
-│   ├── menu/                    # Menu screens
-│   └── project_main/            # Project detail screens
-├── widgets/                     # Reusable widgets
-│   ├── common_buttons.dart
-│   ├── item_card.dart
-│   └── ...
-├── database/                    # Database operations
-│   └── db_helper.dart
-├── theme/                       # App theme configuration
-│   └── app_theme.dart
-├── contact_us_screen.dart       # Contact screen
-├── landing_page.dart            # Landing page
-└── loading_screen.dart          # Loading screen
+│   ├── company_model.dart
+│   └── favorites_manager.dart
+├── screens/
+│   ├── admin/
+│   │   ├── user_management_screen.dart
+│   │   ├── review_moderation_screen.dart
+│   │   └── company_management_screen.dart
+│   ├── internship/
+│   │   ├── internship_list_screen.dart
+│   │   ├── internship_detail_screen.dart
+│   │   └── internship_review_form.dart
+│   ├── profile/
+│   │   ├── profile_screen.dart
+│   │   └── internship_review_form.dart
+│   └── project_main/
+│       ├── project_submission.dart
+│       └── project_requests_notification_screen.dart
+├── services/
+│   ├── cloudinary_service.dart
+│   ├── database_service.dart
+│   ├── current_user_service.dart
+│   └── [...other services]
+└── theme/
+    └── app_theme.dart
 ```
 
----
+## 📱 Key Screens
 
-## How to get started
+1. **Profile Screen** - Display user info, projects, and internships
+2. **Internship Detail** - Browse internship with reviews and ratings
+3. **Review Form** - Submit internship feedback with ratings and images
+4. **Admin Dashboard** - User, project, and company management
+5. **Project Requests** - Request and approve project membership
 
-### Installation Requirements
+## 🔧 Technical Stack
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) (เวอร์ชี่น 3.0 ขึ้นไป)
-- [Dart SDK](https://dart.dev/get-dart) (รวมอยู่ใน Flutter)
-- IDE: Android Studio, VS Code หรือ Xcode
+- **Framework**: Flutter
+- **Backend**: Firebase Firestore
+- **Image Storage**: Cloudinary
+- **State Management**: Inherited Widget / Provider
+- **UI Components**: Material Design
 
-### ขั้นตอนการติดตั้ง
+## 📊 Database Schema
 
-1. **Clone โปรเจค**
-   ```bash
-   git clone <repository-url>
-   cd seniorsteppass_source
-   ```
+### Collections
+- `users` - User profiles and settings
+- `projects` - Project information and members
+- `internships` - Internship opportunities
+- `reviews` - Internship reviews and ratings
+- `companies` - Company information
 
-2. **ดาวน์โหลด dependencies**
-   ```bash
-   flutter pub get
-   ```
+### Subcollections
+- `users/{userId}/projects` - User's joined/created projects
+- `users/{userId}/project_requests` - Project join requests
 
-3. **รัน แอป**
-   ```bash
-   flutter run 
-   ```
+## 🚀 Firebase Configuration
 
----
+- Project: `senior-pass-step`
+- Region: Asia Southeast 1
+- Authentication: Email/Password
+- Cloud Storage: gs://senior-pass-step.appspot.com
 
-## ลิงค์ที่สำคัญ
+## 🎨 Theming
 
-- 📄 **รายงาน**: [ดูรายงานโปรเจค](https://1drv.ms/w/c/b7f7bebe2926ada8/IQAjzjtF8n_MRahJeZvEa0zHAQ-BF2wC3WG7fsp2cadTSts?e=v057qF)
-- 🎨 **Figma Design**: [ดูการออกแบบ](https://www.figma.com/design/4H4p9yVVLmX5pfVAu20lrw/SeniorPassStep?node-id=0-1&t=6PBT7YAdrbyh4aad-1)
+Custom theme with:
+- Primary Color: Teal (#1B7F7E)
+- Secondary Color: Orange/Amber
+- Success: Green
+- Warning: Yellow
+- Bad/Error: Red
 
----
+## 📹 Usage
+
+### Android Emulator
+```bash
+flutter run
+```
+
+### Web (Chrome)
+```bash
+flutter run -d chrome
+```
+
+### Web (Edge)
+```bash
+flutter run -d edge
+```
+
+## 🔐 Security Notes
+
+- Firebase rules restrict access to authenticated users
+- Student ID used as document ID for users
+- Review status requires admin approval before display
+- Profile pictures stored on Cloudinary
+
+## 📝 Version History
+
+### Latest (April 16, 2026)
+- [de52210] Add image upload to Cloudinary in internship review and display review images with expand functionality
+- [779e84b] Auto-sync joined projects to users subcollection when found in members map
+- [a61fb53] Fix collection name from Project to projects for member search
+
+### Previous
+- User management with profile pictures
+- Project approval workflow
+- Firebase login and authentication
+
+## 🤝 Contributing
+
+Contact development team for contribution guidelines.
+
+## 📄 License
+
+All rights reserved.
