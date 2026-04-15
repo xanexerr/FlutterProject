@@ -383,11 +383,35 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bg,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showUserModal(),
-        backgroundColor: AppTheme.primaryTeal,
-        icon: const Icon(Icons.add, color: AppTheme.white),
-        label: const Text('Add User', style: TextStyle(color: AppTheme.white)),
+      appBar: AppBar(
+        backgroundColor: AppTheme.bg,
+        elevation: 0,
+        title: const Text(
+          'User Management',
+          style: TextStyle(
+            color: AppTheme.head,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton.icon(
+              onPressed: () => _showUserModal(),
+              icon: const Icon(Icons.add, size: 20),
+              label: const Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryTeal,
+                foregroundColor: AppTheme.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
