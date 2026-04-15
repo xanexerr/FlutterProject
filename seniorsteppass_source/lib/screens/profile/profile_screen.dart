@@ -103,11 +103,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               // Check if current user's studentId exists in members map
               if (members != null && members.containsKey(data.student_id)) {
-                final projectData = {...doc.data(), 'id': doc.id};
+                final projectId = doc.id;
+                final projectData = {...doc.data(), 'id': projectId};
 
+                // Check if project already exists in user's projects subcollection
+                try {
+                  final userProjectDoc = await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userDocId)
+                      .collection('projects')
+                      .doc(projectId)
+                      .get();
+
+                  if (!userProjectDoc.exists) {
+                    // Project not in user's subcollection, add it now
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userDocId)
+                        .collection('projects')
+                        .doc(projectId)
+                        .set({
+                      'project_id': projectId,
+                      'project_title': doc['name'] ?? doc['title'],
+                      'joined_at': FieldValue.serverTimestamp(),
+                    });
+                  } else {
+                    // Project exists, use data from subcollection if available
+                    final userProjectData = userProjectDoc.data() as Map<String, dynamic>;
+                    if (userProjectData.isNotEmpty) {
+                      projectData['project_title'] = userProjectData['project_title'];
+                    }
+                  }
+                } catch (e) {
+                  print('Error syncing project to user subcollection: $e');
+                }
                 
                 // Avoid duplicates
-                if (!joinedProjects.any((p) => p['id'] == doc.id)) {
+                if (!joinedProjects.any((p) => p['id'] == projectId)) {
                   joinedProjects.add(projectData);
                 }
               }
@@ -710,6 +742,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Build Project Image with validation
+  Widget _buildProjectImage(Map<String, dynamic> project) {
+    // Get image URL safely
+    String? imageUrl;
+    
+    try {
+      final imageUrls = project['image_urls'];
+      if (imageUrls is List && imageUrls.isNotEmpty) {
+        final first = imageUrls[0];
+        if (first is String && first.isNotEmpty && (first.startsWith('http://') || first.startsWith('https://'))) {
+          imageUrl = first;
+        }
+      }
+    } catch (e) {
+      print('Error extracting image URL: $e');
+    }
+
+    // Show image if valid, otherwise show placeholder
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        width: 160,
+        height: 90,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 160,
+            height: 90,
+            color: AppTheme.lightGrey,
+            child: const Icon(Icons.image, color: AppTheme.head),
+          );
+        },
+      );
+    } else {
+      // Show placeholder if no valid image
+      return Container(
+        width: 160,
+        height: 90,
+        color: AppTheme.lightGrey,
+        child: const Icon(Icons.image, color: AppTheme.head),
+      );
+    }
+  }
+
   // Build Project Card Widget
   Widget _buildProjectCard(Map<String, dynamic> project) {
     return Container(
@@ -726,22 +802,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               left: Radius.circular(12),
               right: Radius.circular(12),
             ),
-            child: Image.network(
-              (project['image_urls'] as List?)?.isNotEmpty == true 
-                  ? (project['image_urls'] as List)[0] 
-                  : '',
-              width: 160,
-              height: 90,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 160,
-                  height: 90,
-                  color: AppTheme.lightGrey,
-                  child: const Icon(Icons.image, color: AppTheme.head),
-                );
-              },
-            ),
+            child: _buildProjectImage(project),
           ),
           const SizedBox(width: 12),
 
