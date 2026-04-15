@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_screen/main_screen.dart';
 import 'services/current_user_service.dart';
@@ -12,21 +13,57 @@ class LandingPage extends StatefulWidget {
 
 class _LandingPageState extends State<LandingPage> {
   String _currentUser = 'User';
+  int _projectCount = 0;
+  int _internshipCount = 0;
+  int _usersCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
+    _loadStatistics();
   }
 
-    Future<void> _loadCurrentUser() async {
+  Future<void> _loadCurrentUser() async {
     try {
       final userData = await CurrentUserService().fetchCurrentUserData();
-      if (userData != null) {
+      if (userData != null && mounted) {
         setState(() => _currentUser = userData.full_name ?? 'User');
       }
     } catch (e) {
       // Handle error silently, keep default 'User'
+    }
+  }
+
+  Future<void> _loadStatistics() async {
+    try {
+      // Get project count
+      final projectsSnapshot = await FirebaseFirestore.instance
+          .collection('projects')
+          .count()
+          .get();
+      
+      // Get internships count
+      final internshipsSnapshot = await FirebaseFirestore.instance
+          .collection('internships')
+          .count()
+          .get();
+      
+      // Get users count
+      final usersSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .count()
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _projectCount = projectsSnapshot.count ?? 0;
+          _internshipCount = internshipsSnapshot.count ?? 0;
+          _usersCount = usersSnapshot.count ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error loading statistics: $e');
     }
   }
   @override
@@ -89,9 +126,9 @@ class _LandingPageState extends State<LandingPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatCard('920', 'Project', Icons.folder_open),
-                      _buildStatCard('52', 'Internship', Icons.computer),
-                      _buildStatCard('30', 'Users', Icons.bar_chart),
+                      _buildStatCard('$_projectCount', 'Project', Icons.folder_open),
+                      _buildStatCard('$_internshipCount', 'Internship', Icons.computer),
+                      _buildStatCard('$_usersCount', 'Users', Icons.bar_chart),
                     ],
                   ),
                 ],
