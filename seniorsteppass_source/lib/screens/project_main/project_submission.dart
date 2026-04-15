@@ -26,9 +26,12 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
   final List<String> selectedTags = [];
   final ImagePicker _imagePicker = ImagePicker();
   final CloudinaryService _cloudinaryService = CloudinaryService();
-
+  
+  String selectedStage = 'Developing';
   bool _isLoading = false;
 
+  final List<String> stages = ['Developing', 'Complete'];
+  
   final List<String> categories = [
     'Software Engineer',
     'Data Science',
@@ -105,6 +108,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
         'links': projectLinks,
         'members': projectMembers,
         'tags': selectedTags,
+        'stage': selectedStage,
         'status': 'Pending', // Waiting for admin approval
         'views': 0,
         'likes': 0,
@@ -399,6 +403,61 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.lightGrey,
                     foregroundColor: AppTheme.head,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Project Stage
+                const Text(
+                  'Project Stage',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: stages.map((stage) {
+                      bool isSelected = selectedStage == stage;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => selectedStage = stage);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.second
+                                : AppTheme.lightGrey,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            stage,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : AppTheme.head,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(height: 20),

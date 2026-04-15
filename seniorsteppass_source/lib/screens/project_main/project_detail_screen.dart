@@ -27,11 +27,67 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   String? currentUserStudentId;
   bool isCurrentUserOwner = false;
   bool isLoadingOwnerCheck = true;
+  
+  // Project data from Firebase
+  Map<String, dynamic>? firebaseProjectData;
+  Map<String, dynamic>? projectOwnerData;
+  String projectStage = 'Developing';
+  String ownerName = 'Unknown';
+  String? ownerProfilePic;
 
   @override
   void initState() {
     super.initState();
-    _checkIfCurrentUserIsOwner();
+    _loadProjectAndOwnerData();
+  }
+
+  Future<void> _loadProjectAndOwnerData() async {
+    try {
+      // Fetch full project data from Firebase
+      final projectQuery = await _firestore
+          .collection('projects')
+          .where('id', isEqualTo: widget.project.id)
+          .limit(1)
+          .get();
+
+      // If not found by id, try by document ID
+      late DocumentSnapshot<Map<String, dynamic>> projectDoc;
+      if (projectQuery.docs.isEmpty) {
+        projectDoc = await _firestore
+            .collection('projects')
+            .doc(widget.project.id)
+            .get();
+      } else {
+        projectDoc = projectQuery.docs.first as DocumentSnapshot<Map<String, dynamic>>;
+      }
+
+      if (projectDoc.exists) {
+        firebaseProjectData = projectDoc.data();
+        projectStage = firebaseProjectData?['stage'] ?? 'Developing';
+        
+        // Fetch owner data
+        final ownerId = firebaseProjectData?['owner_id'] as String?;
+        if (ownerId != null && ownerId.isNotEmpty) {
+          final ownerQuery = await _firestore
+              .collection('users')
+              .where('student_id', isEqualTo: ownerId)
+              .limit(1)
+              .get();
+
+          if (ownerQuery.docs.isNotEmpty) {
+            projectOwnerData = ownerQuery.docs.first.data();
+            ownerName = projectOwnerData?['full_name'] ?? 'Unknown';
+            ownerProfilePic = projectOwnerData?['profilePic'] as String?;
+          }
+        }
+      }
+
+      // Check if current user is owner
+      await _checkIfCurrentUserIsOwner();
+    } catch (e) {
+      print('Error loading project data: $e');
+      setState(() => isLoadingOwnerCheck = false);
+    }
   }
 
   Future<void> _checkIfCurrentUserIsOwner() async {
@@ -243,9 +299,79 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
               const SizedBox(height: 20),
 
+              // Project Owner Section
+              const Text(
+                'Project Owner',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.info,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    // Owner Avatar
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0E0E0),
+                        borderRadius: BorderRadius.circular(6),
+                        image: ownerProfilePic != null && ownerProfilePic!.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(ownerProfilePic!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: ownerProfilePic == null || ownerProfilePic!.isEmpty
+                          ? const Icon(
+                              Icons.person,
+                              color: AppTheme.primary,
+                              size: 30,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    // Owner Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ownerName,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.head,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            projectOwnerData?['student_id'] ?? 'N/A',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.head2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
               // Project Status Section
               const Text(
-                'Project Status',
+                'Project Stage',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -256,12 +382,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2B7BFF),
+                  color: projectStage == 'Complete'
+                      ? const Color(0xFF27AE60)
+                      : const Color(0xFF2B7BFF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'Developing',
-                  style: TextStyle(
+                child: Text(
+                  projectStage,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -315,22 +443,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   ),
                 ),
               if (isCurrentUserOwner)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1B6A68),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'This is your project',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+                
               const SizedBox(height: 20),
             ],
           ),
