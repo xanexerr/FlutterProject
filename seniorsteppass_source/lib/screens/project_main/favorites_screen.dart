@@ -50,7 +50,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       _favoriteInternships = [];
       if (internshipIds.isNotEmpty) {
         final internshipSnapshots = await FirebaseFirestore.instance
-            .collection('companies')
+            .collection('internships')
             .where(FieldPath.documentId, whereIn: internshipIds)
             .get();
         _favoriteInternships = internshipSnapshots.docs
