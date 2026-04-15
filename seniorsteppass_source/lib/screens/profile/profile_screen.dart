@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<Map<String, dynamic>> projects = [];
   List<Map<String, dynamic>> internships = [];
   int pendingProjectRequests = 0;
+  String userDocId = '';
 
   bool isLoading = true;
 
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Fetch pending project requests count
       int requestsCount = 0;
+      String userDocId = '';
       try {
         // Get the current user's doc to access project_requests subcollection
         final userDoc = await FirebaseFirestore.instance
@@ -53,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .get();
 
         if (userDoc.docs.isNotEmpty) {
-          final userDocId = userDoc.docs.first.id;
+          userDocId = userDoc.docs.first.id;
           final requestsSnapshot = await FirebaseFirestore.instance
               .collection('users')
               .doc(userDocId)
@@ -105,6 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           projects = projectData.map((p) => p.toJson()).toList();
           internships = resolvedInternships;
           pendingProjectRequests = requestsCount;
+          this.userDocId = userDocId;
           isLoading = false;
         });
       }
@@ -233,17 +236,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         if (hasProject)
                           GestureDetector(
-                            onTap: () {
-                              // Navigate to project requests screen
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProjectRequestsNotificationScreen(
-                                    userDocId: userData['id'] ?? '',
-                                  ),
-                                ),
-                              );
-                            },
+                            onTap: userDocId.isNotEmpty
+                                ? () {
+                                    // Navigate to project requests screen
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ProjectRequestsNotificationScreen(
+                                              userDocId: userDocId,
+                                            ),
+                                      ),
+                                    );
+                                  }
+                                : null,
                             child: Stack(
                               children: [
                                 Container(
