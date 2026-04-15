@@ -7,6 +7,7 @@ import '../project_main/project_submission.dart';
 import 'internship_review_form.dart';
 import '../../services/database_service.dart';
 import '../../services/current_user_service.dart';
+import 'project_requests_notification_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic> userData = {};
   List<Map<String, dynamic>> projects = [];
   List<Map<String, dynamic>> internships = [];
+  int pendingProjectRequests = 0;
 
   bool isLoading = true;
 
@@ -39,6 +41,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final List<ProjectModel> projectData = await _dbService.getUserProjects(
         data.student_id,
       );
+
+      // Fetch pending project requests count
+      int requestsCount = 0;
+      try {
+        // Get the current user's doc to access project_requests subcollection
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: userEmail)
+            .limit(1)
+            .get();
+
+        if (userDoc.docs.isNotEmpty) {
+          final userDocId = userDoc.docs.first.id;
+          final requestsSnapshot = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userDocId)
+              .collection('project_requests')
+              .where('status', isEqualTo: 'pending')
+              .get();
+          requestsCount = requestsSnapshot.docs.length;
+        }
+      } catch (e) {
+        print('Error fetching pending requests: $e');
+      }
 
       List<Map<String, dynamic>> resolvedInternships = [];
 
@@ -78,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           userData = data.toJson();
           projects = projectData.map((p) => p.toJson()).toList();
           internships = resolvedInternships;
+          pendingProjectRequests = requestsCount;
           isLoading = false;
         });
       }
@@ -204,18 +231,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: AppTheme.white,
                           ),
                         ),
-                        if (hasProject && hasInternship)
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.second,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.notifications,
-                              color: AppTheme.white,
-                              size: 20,
+                        if (hasProject)
+                          GestureDetector(
+                            onTap: () {
+                              // Navigate to project requests screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProjectRequestsNotificationScreen(
+                                    userDocId: userData['id'] ?? '',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.second,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications,
+                                    color: AppTheme.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                if (pendingProjectRequests > 0)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          pendingProjectRequests > 99
+                                              ? '99+'
+                                              : '$pendingProjectRequests',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                       ],
