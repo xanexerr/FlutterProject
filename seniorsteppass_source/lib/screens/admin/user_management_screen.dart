@@ -164,7 +164,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: studentIdCtrl,
-                        enabled: false,
+                        enabled: !isEditing,
                         decoration: InputDecoration(
                           hintText: 'Enter student ID',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -211,7 +211,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: emailCtrl,
-                        enabled: false,
+                        enabled: !isEditing,
                         decoration: InputDecoration(
                           hintText: 'Enter email',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
