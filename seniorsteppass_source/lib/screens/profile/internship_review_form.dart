@@ -158,12 +158,6 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.primaryTeal,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryTeal,
-        foregroundColor: Colors.white,
-        title: const Text('Internship Feedback'),
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -503,7 +497,8 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                     (_workloadRating + _environmentRating + _mentorshipRating + _benefitsRating) / 4;
 
                 // Calculate updated overall rating
-                final updatedRating = (newReviewAverage + currentRating) / 2;
+                // If overallRating is 0, use newReviewAverage directly
+                final updatedRating = currentRating == 0.0 ? newReviewAverage : (newReviewAverage + currentRating) / 2;
 
                 // Update internship document
                 await FirebaseFirestore.instance
