@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/index.dart';
-import '../../models/mock_data.dart';
 import '../../theme/app_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProjectManagementScreen extends StatefulWidget {
   const ProjectManagementScreen({super.key});
@@ -11,12 +11,36 @@ class ProjectManagementScreen extends StatefulWidget {
 }
 
 class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
-  late List<ProjectModel> _projects;
+  late List<ProjectModel> _projects = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _projects = List.from(mockProjects);
+    _loadProjectsFromFirestore();
+  }
+
+  Future<void> _loadProjectsFromFirestore() async {
+    setState(() => _isLoading = true);
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('projects')
+          .get();
+      
+      final projects = snapshot.docs
+          .map((doc) => ProjectModel.fromJson(doc.data(), doc.id))
+          .toList();
+      
+      setState(() {
+        _projects = projects;
+        _isLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading projects: $e')),
+      );
+      setState(() => _isLoading = false);
+    }
   }
 
   void _showProjectModal([ProjectModel? project]) {
@@ -81,53 +105,49 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                   child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
+                  onPressed: () async {
+                    try {
                       if (isEditing) {
-                        int index = _projects.indexWhere((p) => p.id == project.id);
-                        if (index != -1) {
-                          final updatedProject = ProjectModel(
-                            id: project.id,
-                            title: titleCtrl.text,
-                            description: descCtrl.text,
-                            owner_id: authorCtrl.text,
-                            image_url: project.image_url,
-                            tags: project.tags,
-                            categories: project.categories,
-                            members: project.members,
-                            timestamp: project.timestamp,
-                            status: selectedStatus,
-                            views: project.views,
-                            likes: project.likes,
-                          );
-                          _projects[index] = updatedProject;
-
-                          int mockIndex = mockProjects.indexWhere((p) => p.id == project.id);
-                          if (mockIndex != -1) mockProjects[mockIndex] = updatedProject;
-                        }
+                        // Update existing project in Firestore
+                        await FirebaseFirestore.instance
+                            .collection('projects')
+                            .doc(project.id)
+                            .update({
+                          'name': titleCtrl.text,
+                          'description': descCtrl.text,
+                          'owner_id': authorCtrl.text,
+                          'status': selectedStatus,
+                          'updated_at': FieldValue.serverTimestamp(),
+                        });
                       } else {
-                        final newProject = ProjectModel(
-                          id: 'p_${DateTime.now().millisecondsSinceEpoch}',
-                          title: titleCtrl.text,
-                          description: descCtrl.text,
-                          owner_id: authorCtrl.text,
-                          image_url: 'https://via.placeholder.com/300x200',
-                          tags: ['Flutter'],
-                          categories: ['App'],
-                          members: [],
-                          timestamp: DateTime.now(),
-                          status: selectedStatus,
-                          views: 0,
-                          likes: 0,
-                        );
-                        _projects.add(newProject);
-                        mockProjects.add(newProject);
+                        // Add new project to Firestore
+                        await FirebaseFirestore.instance
+                            .collection('projects')
+                            .add({
+                          'name': titleCtrl.text,
+                          'description': descCtrl.text,
+                          'owner_id': authorCtrl.text,
+                          'image_urls': [],
+                          'tags': [],
+                          'links': [],
+                          'members': [],
+                          'status': selectedStatus,
+                          'views': 0,
+                          'likes': 0,
+                          'created_at': FieldValue.serverTimestamp(),
+                          'updated_at': FieldValue.serverTimestamp(),
+                        });
                       }
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(isEditing ? 'Project updated successfully' : 'Project added successfully')),
-                    );
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isEditing ? 'Project updated successfully' : 'Project added successfully')),
+                      );
+                      _loadProjectsFromFirestore();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error saving project: $e')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal, foregroundColor: Colors.white),
                   child: const Text('Save'),
@@ -152,15 +172,22 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
             child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _projects.removeWhere((p) => p.id == project.id);
-                mockProjects.removeWhere((p) => p.id == project.id);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Project deleted successfully')),
-              );
+            onPressed: () async {
+              try {
+                await FirebaseFirestore.instance
+                    .collection('projects')
+                    .doc(project.id)
+                    .delete();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Project deleted successfully')),
+                );
+                _loadProjectsFromFirestore();
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error deleting project: $e')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.bad, foregroundColor: Colors.white),
             child: const Text('Delete'),
@@ -180,11 +207,15 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
         icon: const Icon(Icons.add, color: AppTheme.white),
         label: const Text('Add Project', style: TextStyle(color: AppTheme.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: _projects.length,
-          itemBuilder: (context, index) {
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _projects.isEmpty
+              ? const Center(child: Text('No projects found'))
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ListView.builder(
+                    itemCount: _projects.length,
+                    itemBuilder: (context, index) {
             final project = _projects[index];
             return Card(
               elevation: 2,
@@ -281,8 +312,8 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
               ),
             );
           },
-        ),
-      ),
+                  ),
+                ),
     );
   }
 }
