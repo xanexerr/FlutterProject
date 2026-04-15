@@ -250,16 +250,15 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                       const SizedBox(width: 8),
                       // Favorite Button
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _favoritesManager.toggleFavorite(widget.company.id);
-                          });
+                        onTap: () async {
+                          await _favoritesManager.toggleFavorite(widget.company.id, isProject: false);
+                          setState(() {});
                         },
                         child: Icon(
-                          _favoritesManager.isFavorite(widget.company.id)
+                          _favoritesManager.isFavorite(widget.company.id, isProject: false)
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color: _favoritesManager.isFavorite(widget.company.id)
+                          color: _favoritesManager.isFavorite(widget.company.id, isProject: false)
                               ? Colors.red
                               : Colors.grey[400],
                           size: 24,

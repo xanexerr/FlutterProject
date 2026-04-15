@@ -46,16 +46,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _favoritesManager.toggleFavorite(widget.project.id);
-                      });
+                    onTap: () async {
+                      await _favoritesManager.toggleFavorite(widget.project.id, isProject: true);
+                      setState(() {});
                     },
                     child: Icon(
-                      _favoritesManager.isFavorite(widget.project.id)
+                      _favoritesManager.isFavorite(widget.project.id, isProject: true)
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: _favoritesManager.isFavorite(widget.project.id)
+                      color: _favoritesManager.isFavorite(widget.project.id, isProject: true)
                           ? Colors.red
                           : Colors.grey[400],
                       size: 24,

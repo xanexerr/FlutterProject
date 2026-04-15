@@ -226,16 +226,15 @@ class _ProjectSearchScreenState extends State<ProjectSearchScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _favoritesManager.toggleFavorite(project.id);
-                          });
-                        },
-                        child: Icon(
-                          _favoritesManager.isFavorite(project.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: _favoritesManager.isFavorite(project.id)
+                          onTap: () async {
+                            await _favoritesManager.toggleFavorite(project.id, isProject: true);
+                            setState(() {});
+                          },
+                          child: Icon(
+                            _favoritesManager.isFavorite(project.id, isProject: true)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: _favoritesManager.isFavorite(project.id, isProject: true)
                               ? Colors.red
                               : Colors.grey[400],
                           size: 20,

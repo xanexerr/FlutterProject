@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/mock_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/index.dart';
 import '../../models/favorites_manager.dart';
 import '../../theme/app_theme.dart';
@@ -16,22 +16,61 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   final FavoritesManager _favoritesManager = FavoritesManager();
   bool _showProjects = true;
+  bool _isLoading = true;
+  List<ProjectModel> _favoriteProjects = [];
+  List<CompanyModel> _favoriteInternships = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    setState(() => _isLoading = true);
+    try {
+      // Load favorites from Firestore
+      await _favoritesManager.loadFavorites();
+
+      // Fetch favorite projects
+      final projectIds = _favoritesManager.favoriteProjects.toList();
+      _favoriteProjects = [];
+      if (projectIds.isNotEmpty) {
+        final projectSnapshots = await FirebaseFirestore.instance
+            .collection('projects')
+            .where(FieldPath.documentId, whereIn: projectIds)
+            .get();
+        _favoriteProjects = projectSnapshots.docs
+            .map((doc) => ProjectModel.fromJson(doc.data(), doc.id))
+            .toList();
+      }
+
+      // Fetch favorite internships
+      final internshipIds = _favoritesManager.favoriteInternships.toList();
+      _favoriteInternships = [];
+      if (internshipIds.isNotEmpty) {
+        final internshipSnapshots = await FirebaseFirestore.instance
+            .collection('companies')
+            .where(FieldPath.documentId, whereIn: internshipIds)
+            .get();
+        _favoriteInternships = internshipSnapshots.docs
+            .map((doc) => CompanyModel.fromJson(doc.data(), doc.id))
+            .toList();
+      }
+
+      setState(() => _isLoading = false);
+    } catch (e) {
+      print('Error loading favorites: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final favoriteIds = _favoritesManager.favorites;
-    final favoriteProjects = mockProjects
-        .where((project) => favoriteIds.contains(project.id))
-        .toList();
-    final favoriteInternships = mockCompanies
-        .where((company) => favoriteIds.contains(company.id))
-        .toList();
-        
-    final displayedFavorites = _showProjects ? favoriteProjects : favoriteInternships;
+    final displayedFavorites = _showProjects ? _favoriteProjects : _favoriteInternships;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5DD),
-
       body: Column(
         children: [
           // Toggle Buttons
@@ -87,63 +126,95 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ],
             ),
           ),
-          
+
           // List
           Expanded(
-            child: displayedFavorites.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.favorite_border,
-                          size: 64,
-                          color: Colors.grey[400],
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : displayedFavorites.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.favorite_border,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _showProjects ? 'No favorite projects yet' : 'No favorite internships yet',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _showProjects ? 'No favorite projects yet' : 'No favorite internships yet',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: List.generate(
+                            displayedFavorites.length,
+                            (index) {
+                              final item = displayedFavorites[index];
+                              final isProject = _showProjects;
+                              return _buildFavoriteCard(
+                                isProject ? item as ProjectModel : item as CompanyModel,
+                                isProject,
+                                context,
+                              );
+                            },
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(
-                        displayedFavorites.length,
-                        (index) {
-                          final item = displayedFavorites[index];
-                          return _buildFavoriteCard(item, context);
-                        },
                       ),
-                    ),
-                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFavoriteCard(dynamic item, BuildContext context) {
-    final isProject = item is ProjectModel;
-    
+  Widget _buildFavoriteCard(
+    dynamic item,
+    bool isProject,
+    BuildContext context,
+  ) {
+    late String title;
+    late String description;
+    String? imageUrl;
+    late String id;
+    double? rating;
+    int? reviewCount;
+
+    if (isProject) {
+      final project = item as ProjectModel;
+      title = project.title;
+      description = project.description;
+      imageUrl = project.image_url;
+      id = project.id;
+    } else {
+      final company = item as CompanyModel;
+      title = company.company_name;
+      description = company.department;
+      imageUrl = company.logo_url;
+      id = company.id;
+      rating = company.overallRating;
+      reviewCount = company.reviewCount;
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => isProject 
-                ? ProjectDetailScreen(project: item)
-                : InternshipDetailScreen(company: item),
+            builder: (context) => isProject
+                ? ProjectDetailScreen(project: item as ProjectModel)
+                : InternshipDetailScreen(company: item as CompanyModel),
           ),
         ).then((_) {
-          setState(() {});
+          _loadFavorites();
         });
       },
       child: Container(
@@ -163,50 +234,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
-            if (isProject)
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  height: 180,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD9D9D9),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'image',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF999999),
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  height: 180,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD9D9D9),
-                  ),
-                  child: Image.network(
-                    item.logoUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.business, size: 50, color: AppTheme.primaryTeal),
-                    ),
-                  ),
-                ),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
               ),
+              child: Container(
+                width: double.infinity,
+                height: 180,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFD9D9D9),
+                ),
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Center(
+                          child: Icon(Icons.image, size: 50, color: AppTheme.primaryTeal),
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(Icons.image, size: 50, color: AppTheme.primaryTeal),
+                      ),
+              ),
+            ),
             // Content
             Padding(
               padding: const EdgeInsets.all(12.0),
@@ -218,9 +269,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          isProject 
-                              ? (item.title.isNotEmpty ? item.title : "Title")
-                              : item.name,
+                          title,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -231,10 +280,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _favoritesManager.toggleFavorite(item.id);
-                          });
+                        onTap: () async {
+                          await _favoritesManager.toggleFavorite(id, isProject: isProject);
+                          _loadFavorites();
                         },
                         child: const Icon(
                           Icons.favorite,
@@ -246,9 +294,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isProject
-                        ? (item.description.isNotEmpty ? item.description : "No description")
-                        : item.department,
+                    description.isNotEmpty ? description : "No description",
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF1B6A68),
@@ -258,12 +304,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  if (isProject && item.categories.isNotEmpty)
+                  if (isProject)
                     Wrap(
                       spacing: 6,
-                      children: (item.categories as List)
+                      children: (item as ProjectModel)
+                          .tags
                           .take(2)
-                          .map((category) {
+                          .map((tag) {
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -274,7 +321,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            category.toString(),
+                            tag,
                             style: const TextStyle(
                               fontSize: 10,
                               color: Color(0xFFFFB72B),
@@ -284,18 +331,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         );
                       }).toList(),
                     ),
-                  if (!isProject)
+                  if (!isProject && rating != null)
                     Row(
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 14),
                         const SizedBox(width: 4),
                         Text(
-                          item.overallRating.toStringAsFixed(1),
+                          rating.toStringAsFixed(1),
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '(${item.reviewCount} reviews)',
+                          '($reviewCount reviews)',
                           style: const TextStyle(fontSize: 10, color: Colors.grey),
                         ),
                       ],
