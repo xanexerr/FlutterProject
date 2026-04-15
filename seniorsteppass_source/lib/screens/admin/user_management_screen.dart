@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/index.dart';
 import '../../theme/app_theme.dart';
+import '../../services/cloudinary_service.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -26,103 +29,323 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final facultyCtrl = TextEditingController(text: user?.faculty ?? '');
     final emailCtrl = TextEditingController(text: user?.email ?? '');
     String selectedRole = user?.role ?? 'User';
+    XFile? selectedImage;
+    String? profilePicUrl = user?.profilePic;
+    bool isUploading = false;
+    final imagePicker = ImagePicker();
+    final cloudinaryService = CloudinaryService();
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateModal) {
-            return AlertDialog(
-              title: Text(
-                isEditing ? 'Edit User' : 'Add New User',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryTeal),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameCtrl, 
-                      decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-                      
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: studentIdCtrl, 
-                      decoration: const InputDecoration(labelText: 'Student ID', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: facultyCtrl, 
-                      decoration: const InputDecoration(labelText: 'Faculty', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: emailCtrl, 
-                      decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      items: const [
-                        DropdownMenuItem(value: 'User', child: Text('User')),
-                        DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setStateModal(() {
-                            selectedRole = val;
-                          });
-                        }
-                      },
-                      decoration: const InputDecoration(labelText: 'Role', border: OutlineInputBorder()),
-                    )
-                  ],
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Title
+                      Text(
+                        isEditing ? 'Edit User' : 'Add New User',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTeal,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Profile Picture
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: selectedImage != null || profilePicUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: selectedImage != null
+                                        ? FutureBuilder<Uint8List>(
+                                            future: selectedImage!.readAsBytes(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                return Image.memory(
+                                                  snapshot.data!,
+                                                  fit: BoxFit.cover,
+                                                );
+                                              }
+                                              return const Center(
+                                                child: CircularProgressIndicator(),
+                                              );
+                                            },
+                                          )
+                                        : Image.network(
+                                            profilePicUrl ?? '',
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const Icon(Icons.person, size: 60, color: Colors.grey);
+                                            },
+                                          ),
+                                  )
+                                : const Icon(Icons.person, size: 60, color: Colors.grey),
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final image = await imagePicker.pickImage(source: ImageSource.gallery);
+                              if (image != null) {
+                                setStateModal(() {
+                                  selectedImage = image;
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryTeal,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Name
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Name',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.head,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: nameCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Enter name',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Student ID
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Student ID',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.head,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: studentIdCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Enter student ID',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Faculty
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Faculty',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.head,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: facultyCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Enter faculty',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Email
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Email',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.head,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: emailCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Enter email',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Role
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Role',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.head,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        value: selectedRole,
+                        items: const [
+                          DropdownMenuItem(value: 'User', child: Text('User')),
+                          DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setStateModal(() {
+                              selectedRole = val;
+                            });
+                          }
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[300],
+                                foregroundColor: AppTheme.head,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: isUploading
+                                  ? null
+                                  : () async {
+                                      setStateModal(() => isUploading = true);
+                                      try {
+                                        String? uploadedUrl = profilePicUrl;
+                                        if (selectedImage != null) {
+                                          uploadedUrl = await cloudinaryService.uploadImage(selectedImage!);
+                                        }
+
+                                        final updateData = {
+                                          'full_name': nameCtrl.text,
+                                          'student_id': studentIdCtrl.text,
+                                          'faculty': facultyCtrl.text,
+                                          'role': selectedRole,
+                                          'email': emailCtrl.text,
+                                          'password': studentIdCtrl.text,
+                                        };
+
+                                        if (uploadedUrl != null) {
+                                          updateData['profilePic'] = uploadedUrl;
+                                        }
+
+                                        if (isEditing) {
+                                          await _firestore.collection('users').doc(user.id).update(updateData);
+                                        } else {
+                                          await _firestore.collection('users').add(updateData);
+                                        }
+
+                                        if (mounted) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(isEditing ? 'User updated successfully' : 'User added successfully'),
+                                              backgroundColor: AppTheme.success,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                              backgroundColor: AppTheme.bad,
+                                            ),
+                                          );
+                                        }
+                                      } finally {
+                                        setStateModal(() => isUploading = false);
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryTeal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: isUploading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Save'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: AppTheme.head3)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (isEditing) {
-                      // UPDATE operation
-                      await _firestore.collection('users').doc(user.id).update({
-                        'full_name': nameCtrl.text,
-                        'student_id': studentIdCtrl.text,
-                        'faculty': facultyCtrl.text,
-                        'role': selectedRole,
-                        'email': emailCtrl.text,
-                        'password': studentIdCtrl.text,
-                      });
-                    } else {
-                      // CREATE operation
-                      await _firestore.collection('users').add({
-                        'full_name': nameCtrl.text,
-                        'student_id': studentIdCtrl.text,
-                        'faculty': facultyCtrl.text,
-                        'role': selectedRole,
-                        'email': emailCtrl.text,
-                        'password': studentIdCtrl.text,
-                      });
-                    }
-                    if (mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(isEditing ? 'User updated successfully' : 'User added successfully')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal, foregroundColor: Colors.white),
-                  child: const Text('Save'),
-                ),
-              ],
             );
-          }
+          },
         );
-      }
+      },
     );
   }
 
