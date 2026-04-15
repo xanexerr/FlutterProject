@@ -63,9 +63,25 @@ class ProjectModel {
 
   // Convert from JSON
   factory ProjectModel.fromJson(Map<String, dynamic> json, String docId) {
-    var membersList = (json['members'] as List<dynamic>?)
-        ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
-        .toList() ?? [];
+    // Handle members - can be List<String> (emails) or List<Map> (objects)
+    var membersList = <TeamMember>[];
+    if (json['members'] != null && (json['members'] as List<dynamic>).isNotEmpty) {
+      membersList = (json['members'] as List<dynamic>).map((e) {
+        if (e is String) {
+          // If it's a string (email), create a simple TeamMember
+          return TeamMember(
+            id: e,
+            name: e,
+            role: 'Member',
+            profilePic: null,
+          );
+        } else if (e is Map<String, dynamic>) {
+          // If it's an object, parse it normally
+          return TeamMember.fromJson(e);
+        }
+        return TeamMember(id: '', name: '', role: '', profilePic: null);
+      }).toList();
+    }
 
     // Handle both old format (image_url) and new format (image_urls)
     String imageUrl = '';
