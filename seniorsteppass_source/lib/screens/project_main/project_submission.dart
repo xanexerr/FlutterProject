@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/cloudinary_service.dart';
 import '../../services/current_user_service.dart';
@@ -20,7 +19,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
   final TextEditingController projectNameController = TextEditingController();
   final TextEditingController detailedController = TextEditingController();
 
-  final List<File> _imageFiles = []; // Local image files before upload
+  final List<XFile> _imageFiles = []; // XFile supports web, mobile, desktop
   final List<String> projectImages = [];
   final List<String> projectLinks = [];
   final List<String> projectMembers = [];
@@ -42,8 +41,8 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
       final List<XFile> selectedImages = await _imagePicker.pickMultiImage();
       if (selectedImages.isNotEmpty) {
         setState(() {
+          _imageFiles.addAll(selectedImages);
           for (var image in selectedImages) {
-            _imageFiles.add(File(image.path));
             projectImages.add(image.name);
           }
         });
