@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../services/current_user_service.dart';
+import '../../services/cloudinary_service.dart';
 
 class InternshipReviewForm extends StatefulWidget {
   final String internshipId;
@@ -438,6 +439,14 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
           throw Exception('User not authenticated');
         }
 
+        // Upload image to Cloudinary if selected
+        String? imageUrl;
+        if (_selectedImage != null) {
+          final cloudinaryService = CloudinaryService();
+          final xFile = XFile(_selectedImage!.path);
+          imageUrl = await cloudinaryService.uploadImage(xFile);
+        }
+
         final reviewData = {
           'student_id': studentId,
           'internship_id': widget.internshipId,
@@ -451,6 +460,11 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
           'status': 'Pending',
           'updated_at': Timestamp.now(),
         };
+
+        // Add image URL if upload was successful
+        if (imageUrl != null && imageUrl.isNotEmpty) {
+          reviewData['image_url'] = imageUrl;
+        }
 
         if (_isEditing && _existingReviewId != null) {
           // UPDATE existing review

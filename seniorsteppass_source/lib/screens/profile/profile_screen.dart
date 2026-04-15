@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:seniorsteppass_source/models/project_model.dart';
 import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
@@ -55,11 +54,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         print('Error fetching user doc ID: $e');
       }
-
-      // Fetch projects by student ID (projects user created)
-      final List<ProjectModel> projectData = await _dbService.getUserProjects(
-        data.student_id,
-      );
 
       // Fetch projects user joined (from users/{userDocId}/projects subcollection and from Project collection members)
       List<Map<String, dynamic>> joinedProjects = [];
@@ -201,11 +195,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
 
-      // Combine user's own projects with joined projects
-      List<Map<String, dynamic>> allProjects = [
-        ...projectData.map((p) => p.toJson()).toList(),
-        ...joinedProjects,
-      ];
+      // Display only projects found from members map (joined projects)
+      List<Map<String, dynamic>> allProjects = joinedProjects;
 
       if (mounted) {
         setState(() {
@@ -379,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       width: 20,
                                       height: 20,
                                       decoration: const BoxDecoration(
-                                        color: Colors.red,
+                                        color: AppTheme.bad,
                                         shape: BoxShape.circle,
                                       ),
                                       child: Center(
@@ -411,7 +402,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         return Column(
                           key: ValueKey(index),
                           children: [
-                            _buildProjectCard(project),
+                            _buildProjectCard(project, userData['student_id']),
                             if (index < projects.length - 1)
                               const SizedBox(height: 12),
                           ],
@@ -787,7 +778,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Build Project Card Widget
-  Widget _buildProjectCard(Map<String, dynamic> project) {
+  Widget _buildProjectCard(Map<String, dynamic> project, String? studentId) {
+    final isOwner = studentId != null && project['owner_id'] == studentId;
+    
     return Container(
       padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
@@ -806,30 +799,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 12),
 
-          // Project Info
+          // Project Info with Owner Badge
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Text(
-                  project['name'] ?? 'Project Name',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.head,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      project['name'] ?? 'Project Name',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.head,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      project['description'] ?? 'Project Detail',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.head3,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  project['description'] ?? 'Project Detail',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppTheme.head3,
-                    height: 1.3,
+                // Owner Badge (Red circle with star)
+                if (isOwner)
+                  Positioned(
+                    top: 0,
+                    right: 18,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.star,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
               ],
             ),
           ),

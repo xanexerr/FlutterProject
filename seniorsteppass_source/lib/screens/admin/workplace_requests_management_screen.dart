@@ -189,16 +189,11 @@ class _WorkplaceRequestsManagementScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bg,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primary,
-        title: const Text('Workplace Requests Management'),
-      ),
       body: Column(
         children: [
           // Filter Tabs
           Container(
-            color: Colors.white,
+            color: AppTheme.bg,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,

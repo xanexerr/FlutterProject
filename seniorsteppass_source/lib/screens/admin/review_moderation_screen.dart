@@ -129,8 +129,17 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
 
               final String companyName = reviewData['company_name'] ?? 'Unknown Company';
               final String reviewText = reviewData['review_text'] ?? '';
-              final num rating = reviewData['rating'] ?? 0;
-              final String userId = reviewData['user_id'] ?? 'Unknown User';
+              
+              // Calculate average rating from individual ratings
+              final workloadRating = (reviewData['workload_rating'] as num?)?.toDouble() ?? 0;
+              final environmentRating = (reviewData['environment_rating'] as num?)?.toDouble() ?? 0;
+              final mentorshipRating = (reviewData['mentorship_rating'] as num?)?.toDouble() ?? 0;
+              final benefitsRating = (reviewData['benefits_rating'] as num?)?.toDouble() ?? 0;
+              
+              final avgRating = (workloadRating + environmentRating + mentorshipRating + benefitsRating) / 4;
+              final roundedRating = avgRating.round();
+              
+              final String userId = reviewData['student_id'] ?? reviewData['user_id'] ?? 'Unknown User';
               final String createdAt = _formatTimestamp(reviewData['created_at']);
               final String status = reviewData['status'] ?? 'Pending';
 
@@ -179,8 +188,15 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          Text(' $rating/5', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          ...List.generate(
+                            5,
+                            (i) => Icon(
+                              Icons.star,
+                              color: i < roundedRating ? Colors.amber : Colors.grey[300],
+                              size: 16,
+                            ),
+                          ),
+                          Text(' $roundedRating/5', style: const TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(width: 16),
                           Text(createdAt, style: const TextStyle(fontSize: 12, color: AppTheme.head2)),
                         ],

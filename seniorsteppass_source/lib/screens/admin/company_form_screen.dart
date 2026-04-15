@@ -122,7 +122,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.lightYellow,
+      backgroundColor: AppTheme.bg,
       appBar: const CustomHeader(showBackButton: true),
       body: SingleChildScrollView(
         child: Padding(

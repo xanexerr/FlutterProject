@@ -504,13 +504,27 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                               final department = reviewData['department'] ?? 'Intern';
                               final studentId = reviewData['student_id'] ?? '';
 
+                              // Calculate average rating from review
+                              final workloadRating = (reviewData['workload_rating'] as num?)?.toDouble() ?? 0;
+                              final environmentRating = (reviewData['environment_rating'] as num?)?.toDouble() ?? 0;
+                              final mentorshipRating = (reviewData['mentorship_rating'] as num?)?.toDouble() ?? 0;
+                              final benefitsRating = (reviewData['benefits_rating'] as num?)?.toDouble() ?? 0;
+                              
+                              final avgRating = (workloadRating + environmentRating + mentorshipRating + benefitsRating) / 4;
+                              final roundedRating = avgRating.round();
+
                               return FutureBuilder<DocumentSnapshot>(
                                 future: _firestore.collection('users').doc(studentId).get(),
                                 builder: (context, userSnapshot) {
                                   String userName = 'Unknown User';
+                                  String? profilePic;
+                                  String userInitials = 'U';
+                                  
                                   if (userSnapshot.hasData && userSnapshot.data!.exists) {
                                     final userData = userSnapshot.data!.data() as Map<String, dynamic>;
                                     userName = userData['full_name'] ?? 'Unknown User';
+                                    profilePic = userData['profilePic'] as String?;
+                                    userInitials = userName.split(' ').map((n) => n.isNotEmpty ? n[0].toUpperCase() : '').take(2).join();
                                   }
 
                                   return Container(
@@ -526,24 +540,32 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                         Row(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            // Avatar
+                                            // Avatar with Profile Picture
                                             Container(
                                               width: 40,
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                                 color: Colors.grey[300],
+                                                image: profilePic != null && profilePic.isNotEmpty
+                                                    ? DecorationImage(
+                                                        image: NetworkImage(profilePic),
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                    : null,
                                               ),
-                                              child: Center(
-                                                child: Text(
-                                                  userName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').take(2).join(),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ),
+                                              child: profilePic == null || profilePic.isEmpty
+                                                  ? Center(
+                                                      child: Text(
+                                                        userInitials,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.grey[700],
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : null,
                                             ),
                                             const SizedBox(width: 12),
                                             // Name and Info
@@ -570,20 +592,99 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                                 ],
                                               ),
                                             ),
-                                            // Star Rating
+                                            // Star Rating - Based on actual review ratings
                                             Row(
                                               children: List.generate(
                                                 5,
                                                 (i) => Icon(
                                                   Icons.star,
                                                   size: 12,
-                                                  color: i < 5 ? Colors.amber : Colors.grey[300],
+                                                  color: i < roundedRating ? Colors.amber : Colors.grey[300],
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 8),
+                                        
+                                        // Review Image (if available) - Square and Tappable
+                                        if (reviewData['image_url'] != null && (reviewData['image_url'] as String).isNotEmpty)
+                                          GestureDetector(
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => Dialog(
+                                                  backgroundColor: Colors.transparent,
+                                                  insetPadding: const EdgeInsets.all(16),
+                                                  child: GestureDetector(
+                                                    onTap: () => Navigator.pop(context),
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Image.network(
+                                                          reviewData['image_url'] as String,
+                                                          fit: BoxFit.contain,
+                                                          errorBuilder: (context, error, stackTrace) {
+                                                            return Container(
+                                                              color: Colors.grey[300],
+                                                              child: const Icon(
+                                                                Icons.image,
+                                                                color: Colors.grey,
+                                                                size: 50,
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                        const SizedBox(height: 16),
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.pop(context),
+                                                          child: Container(
+                                                            padding: const EdgeInsets.symmetric(
+                                                              horizontal: 24,
+                                                              vertical: 12,
+                                                            ),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: BorderRadius.circular(8),
+                                                            ),
+                                                            child: const Text(
+                                                              'Close',
+                                                              style: TextStyle(
+                                                                color: AppTheme.head,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              width: 120,
+                                              height: 120,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(8),
+                                                color: Colors.grey[200],
+                                              ),
+                                              child: Image.network(
+                                                reviewData['image_url'] as String,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    color: Colors.grey[300],
+                                                    child: const Icon(
+                                                      Icons.image,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
                                         
                                         // Review Text
                                         Text(
