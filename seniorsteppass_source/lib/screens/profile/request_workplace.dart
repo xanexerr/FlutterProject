@@ -74,21 +74,22 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
       print('DEBUG: requesterId = $requesterId');
       print('DEBUG: requesterName = $requesterName');
 
-      // Create workplace request
-      await _firestore
-          .collection('users')
-          .doc(userDocId)
-          .collection('workplace_requests')
-          .add({
-        'workplace_name': _workplaceNameController.text.trim(),
-        'company': _companyController.text.trim(),
-        'position': _positionController.text.trim(),
+
+      // Also save to internships collection for admin review
+      await _firestore.collection('internships').add({
+        'company_name': _companyController.text.trim(),
+        'department': _positionController.text.trim(),
         'description': _descriptionController.text.trim(),
+        'location': _workplaceNameController.text.trim(),
+        'logo_url': '',
+        'overallRating': 0,
+        'reviewCount': 0,
+        'timestamp': FieldValue.serverTimestamp(),
+        'website': '',
         'requester_name': requesterName,
         'requester_student_id': requesterId,
         'requester_uid': userDocId,
-        'requested_at': FieldValue.serverTimestamp(),
-        'status': 'pending',
+        'request_status': 'pending',
       });
 
       print('DEBUG: Request submitted successfully!');
@@ -290,12 +291,14 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
               // Cancel Button
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: ElevatedButton(
                   onPressed: _isLoading ? null : () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: AppTheme.bad,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
+                      
                     ),
                   ),
                   child: const Text(
@@ -303,7 +306,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.primary,
+                      color: Colors.white,
                     ),
                   ),
                 ),
