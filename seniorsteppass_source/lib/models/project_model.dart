@@ -103,10 +103,27 @@ class ProjectModel {
       timestamp: (json['created_at'] ?? json['timestamp']) != null 
         ? ((json['created_at'] ?? json['timestamp']) as Timestamp).toDate() 
         : DateTime.now(),
-      status: json['status'] ?? 'Active',
+      status: _normalizeStatus(json['status'] as String?),
       views: json['views'] ?? 0,
       likes: json['likes'] ?? 0,
     );
+  }
+
+  // Normalize status values to match current enum: Pending, Approved, Hidden
+  static String _normalizeStatus(String? status) {
+    final normalized = status?.toLowerCase() ?? '';
+    
+    // Map old status values to new ones
+    if (normalized == 'active' || normalized == 'approved') {
+      return 'Approved';
+    } else if (normalized == 'hidden' || normalized == 'archived') {
+      return 'Hidden';
+    } else if (normalized == 'pending' || normalized == 'completed') {
+      return 'Pending';
+    }
+    
+    // Default to Pending if unknown
+    return 'Pending';
   }
 
   // Convert to JSON
