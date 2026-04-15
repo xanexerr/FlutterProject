@@ -157,6 +157,7 @@ class _MenuScreenState extends State<MenuScreen> {
           NavigationMenuItem(
             title: 'Contact US',
             destination: const ContactUsScreen(),
+            fontSize: 24,
           ),
           
           Container(

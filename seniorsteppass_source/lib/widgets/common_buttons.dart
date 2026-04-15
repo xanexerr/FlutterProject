@@ -170,6 +170,7 @@ class NavigationMenuItem extends StatelessWidget {
   final Widget destination;
   final Color backgroundColor;
   final Color textColor;
+  final double fontSize;
 
   const NavigationMenuItem({
     super.key,
@@ -177,6 +178,7 @@ class NavigationMenuItem extends StatelessWidget {
     required this.destination,
     this.backgroundColor = AppTheme.lightYellow,
     this.textColor = AppTheme.primaryTeal,
+    this.fontSize = 18,
   });
 
   @override
@@ -198,7 +200,7 @@ class NavigationMenuItem extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Inter',
               color: textColor,
-              fontSize: 18,
+              fontSize: fontSize,
               fontWeight: FontWeight.bold,
             ),
           ),
