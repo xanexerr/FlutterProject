@@ -36,14 +36,20 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Scale factor: at 320px use 0.8, at 400px use 0.9, at 500px+ use 1.0
+    final scaleFactor = screenWidth < 360 ? 0.8 : (screenWidth < 420 ? 0.9 : 1.0);
+    
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: const MainHeader(),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         color: AppTheme.lightYellow,
-        // padding: const EdgeInsets.only(bottom: 16.0, top: 8.0, left: 16.0, right: 16.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16.0 * scaleFactor,
+          vertical: 4.0 * scaleFactor,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: AppTheme.lightYellow,
@@ -52,11 +58,11 @@ class _MainScreenState extends State<MainScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.home_filled),
-              _buildNavItem(1, Icons.assignment_outlined),
-              _buildNavItem(2, Icons.work_outline),
-              _buildNavItem(3, Icons.bookmark_border),
-              _buildNavItem(4, Icons.person_outline),
+              _buildNavItem(0, Icons.home_filled, scaleFactor),
+              _buildNavItem(1, Icons.assignment_outlined, scaleFactor),
+              _buildNavItem(2, Icons.work_outline, scaleFactor),
+              _buildNavItem(3, Icons.bookmark_border, scaleFactor),
+              _buildNavItem(4, Icons.person_outline, scaleFactor),
             ],
           ),
         ),
@@ -64,8 +70,12 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon) {
+  Widget _buildNavItem(int index, IconData icon, [double scaleFactor = 1.0]) {
     final isSelected = _currentIndex == index;
+    final itemWidth = 65.0 * scaleFactor;
+    final padding = 12.0 * scaleFactor;
+    final iconSize = 28.0 * scaleFactor;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -73,8 +83,8 @@ class _MainScreenState extends State<MainScreen> {
         });
       },
       child: Container(
-        width: 65,
-        padding: const EdgeInsets.all(12),
+        width: itemWidth,
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryTeal : Colors.transparent,
           shape: BoxShape.rectangle,
@@ -82,13 +92,11 @@ class _MainScreenState extends State<MainScreen> {
             left: Radius.circular(30),
             right: Radius.circular(30),
           ),
-
-          // borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           icon,
           color: isSelected ? AppTheme.white : AppTheme.primaryTeal,
-          size: 28,
+          size: iconSize,
         ),
       ),
     );
