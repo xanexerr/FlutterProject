@@ -63,24 +63,36 @@ class ProjectModel {
 
   // Convert from JSON
   factory ProjectModel.fromJson(Map<String, dynamic> json, String docId) {
-    // Handle members - can be List<String> (emails) or List<Map> (objects)
+    // Handle members - can be List<String> (old format), Map<String, String> (new format with student_id: role)
     var membersList = <TeamMember>[];
-    if (json['members'] != null && (json['members'] as List<dynamic>).isNotEmpty) {
-      membersList = (json['members'] as List<dynamic>).map((e) {
-        if (e is String) {
-          // If it's a string (email), create a simple TeamMember
+    if (json['members'] != null) {
+      if (json['members'] is Map<String, dynamic>) {
+        // New format: Map<String, String> where key=student_id, value=role
+        final membersMap = json['members'] as Map<String, dynamic>;
+        membersList = membersMap.entries.map((e) {
           return TeamMember(
-            id: e,
-            name: e,
-            role: 'Member',
+            id: e.key,
+            name: e.key,
+            role: e.value.toString(),
             profilePic: null,
           );
-        } else if (e is Map<String, dynamic>) {
-          // If it's an object, parse it normally
-          return TeamMember.fromJson(e);
-        }
-        return TeamMember(id: '', name: '', role: '', profilePic: null);
-      }).toList();
+        }).toList();
+      } else if (json['members'] is List<dynamic>) {
+        // Old format: List (email strings or objects)
+        membersList = (json['members'] as List<dynamic>).map((e) {
+          if (e is String) {
+            return TeamMember(
+              id: e,
+              name: e,
+              role: 'Member',
+              profilePic: null,
+            );
+          } else if (e is Map<String, dynamic>) {
+            return TeamMember.fromJson(e);
+          }
+          return TeamMember(id: '', name: '', role: '', profilePic: null);
+        }).toList();
+      }
     }
 
     // Handle both old format (image_url) and new format (image_urls)
