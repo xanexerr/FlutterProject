@@ -60,43 +60,46 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                 isEditing ? 'Edit Project' : 'Add New Project',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryTeal),
               ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleCtrl, 
-                      decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: authorCtrl, 
-                      decoration: const InputDecoration(labelText: 'Author', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: descCtrl, 
-                      maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: selectedStatus,
-                      items: const [
-                        DropdownMenuItem(value: 'Pending', child: Text('Pending - Waiting for approval')),
-                        DropdownMenuItem(value: 'Approved', child: Text('Approved - Published')),
-                        DropdownMenuItem(value: 'Hidden', child: Text('Hidden - Not visible')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setStateModal(() {
-                            selectedStatus = val;
-                          });
-                        }
-                      },
-                      decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                    )
-                  ],
+              content: SizedBox(
+                width: 400,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: titleCtrl, 
+                        decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: authorCtrl, 
+                        decoration: const InputDecoration(labelText: 'Author', border: OutlineInputBorder()),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: descCtrl, 
+                        maxLines: 2,
+                        decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedStatus,
+                        items: const [
+                          DropdownMenuItem(value: 'Pending', child: Text('Pending - Waiting for approval')),
+                          DropdownMenuItem(value: 'Approved', child: Text('Approved - Published')),
+                          DropdownMenuItem(value: 'Hidden', child: Text('Hidden - Not visible')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setStateModal(() {
+                              selectedStatus = val;
+                            });
+                          }
+                        },
+                        decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+                      )
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -325,40 +328,48 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                     // Status and Actions Row
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: project.status == 'Approved' ? AppTheme.success.withOpacity(0.2) : 
-                                   project.status == 'Pending' ? Colors.orange.withOpacity(0.2) :
-                                   Colors.grey.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            project.status, 
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: project.status == 'Approved' ? AppTheme.success : 
-                                     project.status == 'Pending' ? Colors.orange.shade700 :
-                                     Colors.grey.shade700,
-                              fontWeight: FontWeight.bold
-                            )
+                        Flexible(
+                          child: Container(
+                            
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: project.status == 'Approved' ? AppTheme.success.withOpacity(0.2) : 
+                                     project.status == 'Pending' ? Colors.orange.withOpacity(0.2) :
+                                     Colors.grey.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              project.status, 
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: project.status == 'Approved' ? AppTheme.success : 
+                                       project.status == 'Pending' ? Colors.orange.shade700 :
+                                       Colors.grey.shade700,
+                                fontWeight: FontWeight.bold
+                              )
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: AppTheme.info, size: 22),
-                          onPressed: () => _showProjectModal(project),
-                          tooltip: 'Edit',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit, color: AppTheme.info, size: 20),
+                            onPressed: () => _showProjectModal(project),
+                            tooltip: 'Edit',
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
-                        const SizedBox(width: 16),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: AppTheme.bad, size: 22),
-                          onPressed: () => _confirmDelete(project),
-                          tooltip: 'Delete',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            icon: const Icon(Icons.delete, color: AppTheme.bad, size: 20),
+                            onPressed: () => _confirmDelete(project),
+                            tooltip: 'Delete',
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
                       ],
                     ),
