@@ -62,6 +62,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
               ),
               content: SizedBox(
                 width: 400,
+      
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -84,10 +85,12 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: selectedStatus,
+                        isDense: true,
+                        isExpanded: true,
                         items: const [
-                          DropdownMenuItem(value: 'Pending', child: Text('Pending - Waiting for approval')),
-                          DropdownMenuItem(value: 'Approved', child: Text('Approved - Published')),
-                          DropdownMenuItem(value: 'Hidden', child: Text('Hidden - Not visible')),
+                          DropdownMenuItem(value: 'Pending', child: Text('Pending', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Approved', child: Text('Approved', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Hidden', child: Text('Hidden', overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (val) {
                           if (val != null) {
@@ -96,7 +99,11 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                             });
                           }
                         },
-                        decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'Status',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
                       )
                     ],
                   ),
@@ -133,7 +140,8 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                           'image_urls': [],
                           'tags': [],
                           'links': [],
-                          'members': [],
+                          'members': {},
+                          'stage': 'Developing',
                           'status': selectedStatus,
                           'views': 0,
                           'likes': 0,
