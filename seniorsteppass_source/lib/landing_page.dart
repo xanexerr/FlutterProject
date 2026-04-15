@@ -299,38 +299,54 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   Widget _buildStatCard(String count, String label, IconData icon) {
-    return Container(
-      width: 110,
-      height: 120,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryTeal,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: AppTheme.white, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            count,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              color: AppTheme.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive width based on available space
+        // Default size: 110x120 (width:height ratio = 0.917)
+        final double baseWidth = 110;
+        final double baseHeight = 120;
+        final double aspectRatio = baseWidth / baseHeight;
+        
+        // Use max 110 width, but scale down on smaller screens
+        final double cardWidth = constraints.maxWidth > baseWidth 
+            ? baseWidth 
+            : constraints.maxWidth * 0.9;
+        final double cardHeight = cardWidth / aspectRatio;
+
+        return Container(
+          width: cardWidth,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryTeal,
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              color: AppTheme.white,
-              fontSize: 12,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.white, size: cardWidth * 0.25),
+              SizedBox(height: cardHeight * 0.08),
+              Text(
+                count,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  color: AppTheme.white,
+                  fontSize: cardWidth * 0.18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: cardHeight * 0.04),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  color: AppTheme.white,
+                  fontSize: cardWidth * 0.11,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
