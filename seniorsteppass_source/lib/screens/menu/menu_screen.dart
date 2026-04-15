@@ -158,6 +158,7 @@ class _MenuScreenState extends State<MenuScreen> {
             title: 'Contact US',
             destination: const ContactUsScreen(),
             fontSize: 24,
+            
           ),
           
           Container(
@@ -176,39 +177,19 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
 
-          // Back to Admin Button
-          if (isAdmin && !isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.info,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Admin Dashboard',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      color: AppTheme.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+          // Admin Dashboard Navigation Item
+          if (isAdmin && !isLoading) ...[
+            Container(
+              height: 1,
+              color: AppTheme.head3,
             ),
+            NavigationMenuItem(
+              title: 'Admin Dashboard',
+              destination: const AdminDashboardScreen(),
+              backgroundColor: AppTheme.info,
+              textColor: AppTheme.white,
+            ),
+          ],
 
           // Log Out Button
           Padding(
