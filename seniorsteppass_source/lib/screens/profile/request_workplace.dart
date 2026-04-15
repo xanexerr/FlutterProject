@@ -47,6 +47,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
 
     try {
       final userEmail = _userService.getCurrentUserEmail();
+      print('DEBUG: userEmail = $userEmail');
       if (userEmail == null) {
         throw Exception('User not logged in');
       }
@@ -58,6 +59,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
           .limit(1)
           .get();
 
+      print('DEBUG: userQuery.docs.length = ${userQuery.docs.length}');
       if (userQuery.docs.isEmpty) {
         throw Exception('User not found');
       }
@@ -66,6 +68,11 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
       final userDocId = userQuery.docs.first.id;
       final requesterId = userData['student_id'] as String? ?? '';
       final requesterName = userData['full_name'] as String? ?? 'Unknown';
+
+      print('DEBUG: Submitting request...');
+      print('DEBUG: userDocId = $userDocId');
+      print('DEBUG: requesterId = $requesterId');
+      print('DEBUG: requesterName = $requesterName');
 
       // Create workplace request
       await _firestore
@@ -84,6 +91,8 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
         'status': 'pending',
       });
 
+      print('DEBUG: Request submitted successfully!');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -94,6 +103,7 @@ class _RequestWorkplaceScreenState extends State<RequestWorkplaceScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      print('DEBUG: Error occurred: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
