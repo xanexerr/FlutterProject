@@ -44,29 +44,48 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: AppTheme.white,
       appBar: const MainHeader(),
       body: _pages[_currentIndex],
-      bottomNavigationBar: Container(
-        color: AppTheme.lightYellow,
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.0 * scaleFactor,
-          vertical: 4.0 * scaleFactor,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
             color: AppTheme.lightYellow,
-            borderRadius: BorderRadius.circular(30),
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.0 * scaleFactor,
+              vertical: 4.0 * scaleFactor,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.lightYellow,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(0, Icons.home_filled, scaleFactor),
+                  _buildNavItem(1, Icons.assignment_outlined, scaleFactor),
+                  _buildNavItem(2, Icons.work_outline, scaleFactor),
+                  _buildNavItem(3, Icons.bookmark_border, scaleFactor),
+                  _buildNavItem(4, Icons.person_outline, scaleFactor),
+                ],
+              ),
+            
+            ),
+            
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.home_filled, scaleFactor),
-              _buildNavItem(1, Icons.assignment_outlined, scaleFactor),
-              _buildNavItem(2, Icons.work_outline, scaleFactor),
-              _buildNavItem(3, Icons.bookmark_border, scaleFactor),
-              _buildNavItem(4, Icons.person_outline, scaleFactor),
-            ],
+          // Bottom spacing with same color as nav
+          Container(
+            width: double.infinity,
+            height: 16,
+            color: AppTheme.lightYellow,
           ),
-        ),
+          Container(
+            width: double.infinity,
+            height: 8,
+            color: AppTheme.lightYellow,
+          ),
+        ],
       ),
+      
     );
   }
 

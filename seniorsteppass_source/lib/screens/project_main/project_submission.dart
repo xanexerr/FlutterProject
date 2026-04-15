@@ -100,13 +100,17 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
       }
 
       // Save project data to Firestore with PENDING status
+      // Add creator as owner member by default
+      final membersMap = Map<String, String>.from(projectMembers);
+      membersMap[userId] = 'Owner'; // Creator is always owner and cannot be removed
+      
       await FirebaseFirestore.instance.collection('projects').add({
         'name': projectNameController.text.trim(),
         'description': detailedController.text.trim(),
         'owner_id': userId,
         'image_urls': uploadedImageUrls,
         'links': projectLinks,
-        'members': projectMembers,
+        'members': membersMap,
         'tags': selectedTags,
         'stage': selectedStage,
         'status': 'Pending', // Waiting for admin approval

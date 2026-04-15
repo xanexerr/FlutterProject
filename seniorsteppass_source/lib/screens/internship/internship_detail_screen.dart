@@ -200,7 +200,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 24),
                       // Company Info
                       Expanded(
                         child: Column(
@@ -210,7 +210,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                             Text(
                               widget.company.company_name,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.head,
                               ),
@@ -218,15 +218,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
-                            // Department
-                            Text(
-                              widget.company.department,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.head2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
+                      
                             // Categories Badge
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -234,8 +226,8 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
                                 color: const Color(0xFFFFC107),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
-                                'Categories',
+                              child: Text(
+                                widget.company.department,
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
