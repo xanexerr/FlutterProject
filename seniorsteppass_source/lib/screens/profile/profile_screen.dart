@@ -8,6 +8,7 @@ import 'internship_review_form.dart';
 import '../../services/database_service.dart';
 import '../../services/current_user_service.dart';
 import 'project_requests_notification_screen.dart';
+import 'request_workplace.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -375,6 +376,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: const Center(
                                     child: Text(
                                       'Add Project',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.head,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(height: 1, color: Colors.black12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const RequestWorkplaceScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Center(
+                                    child: Text(
+                                      'Request Workplace',
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
