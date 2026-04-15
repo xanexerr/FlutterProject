@@ -8,6 +8,7 @@ import 'user_management_screen.dart';
 import 'project_management_screen.dart';
 import 'company_management_screen.dart';
 import 'review_moderation_screen.dart';
+import 'workplace_requests_management_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -25,6 +26,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     const ProjectManagementScreen(),
     const CompanyManagementScreen(),
     const ReviewModerationScreen(),
+    const WorkplaceRequestsManagementScreen(),
   ];
 
   final List<String> _titles = [
@@ -33,6 +35,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     'Project Management',
     'Company Management',
     'Review Moderation',
+    'Workplace Requests',
   ];
 
   @override
@@ -130,6 +133,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               selected: _selectedIndex == 4,
               onTap: () {
                 setState(() => _selectedIndex = 4);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.business),
+              title: const Text('Workplace Requests'),
+              selected: _selectedIndex == 5,
+              onTap: () {
+                setState(() => _selectedIndex = 5);
                 Navigator.pop(context);
               },
             ),
