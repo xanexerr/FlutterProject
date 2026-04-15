@@ -5,8 +5,7 @@ import 'signup_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../main_screen/main_screen.dart';
 import '../../loading_screen.dart';
-// firebase auth and firestore
-import 'package:firebase_auth/firebase_auth.dart';
+// firebase
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -272,54 +271,58 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
-      // Attempt to login user using Firebase Authentication
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
+      // Query user from Firestore by email
       final userQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('email', isEqualTo: email)
           .limit(1)
           .get();
-      
+
       if (!mounted) return;
       Navigator.pop(context); // Remove loading screen
 
-      // Login successful, check user role and navigate accordingly
-      if (userQuery.docs.isNotEmpty) {
-        String role = userQuery.docs.first['role'] ?? 'User';
-        
-        // Cache user data in CurrentUserService
-        await CurrentUserService().fetchCurrentUserData();
+      if (userQuery.docs.isEmpty) {
+        _showErrorSnackBar(context, 'User not found. Please check your email.');
+        return;
+      }
 
-        if (isAdminRoute){
-          if (role == 'Admin') {
-            // Admin login successful
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-              (route) => false, // Remove all previous routes
-            );
-          } else {
-            // Not an admin, show error and return to login
-            await FirebaseAuth.instance.signOut();
-            _showErrorSnackBar(context, 'You do not have admin access.');
-            return;
-          }
-        } else {
+      // Get user data
+      final userDoc = userQuery.docs.first;
+      final userData = userDoc.data();
+      final storedPassword = userData['password'] ?? '';
+      final role = userData['role'] ?? 'User';
+
+      // Verify password
+      if (password != storedPassword) {
+        _showErrorSnackBar(context, 'Invalid password. Please try again.');
+        return;
+      }
+
+      // Password is correct, proceed with login
+      // Set email dan fetch user data
+      final userService = CurrentUserService();
+      userService.setCurrentUserEmail(email);
+      await userService.fetchCurrentUserData(email: email);
+
+      if (isAdminRoute) {
+        if (role == 'Admin') {
+          // Admin login successful
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
             (route) => false, // Remove all previous routes
           );
+        } else {
+          // Not an admin, show error
+          _showErrorSnackBar(context, 'You do not have admin access.');
+          return;
         }
-
       } else {
-        await FirebaseAuth.instance.signOut();
-        _showErrorSnackBar(context, 'User data not found. Please contact support.');
-        return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false, // Remove all previous routes
+        );
       }
 
     } catch (e) {
@@ -327,14 +330,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pop(context); // Remove loading screen
 
       String errorMessage = 'An unexpected error occurred. Please try again.';
-
-      if (e is FirebaseAuthException) {
-        if (e.code == 'user-not-found' ||
-            e.code == 'wrong-password' ||
-            e.code == 'invalid-email') {
-          errorMessage = 'Invalid email or password. Please try again.';
-        }
-      }
+      print('Login error: $e');
       
       _showErrorSnackBar(context, 'Login failed: $errorMessage');
     }

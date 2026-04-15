@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 
@@ -11,24 +10,24 @@ class CurrentUserService {
 
   CurrentUserService._internal();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   UserModel? _cachedUserData;
+  String? _currentEmail; // Store email for login without Firebase Auth
+
+  /// Set current user email (for login with Firestore password)
+  void setCurrentUserEmail(String email) {
+    _currentEmail = email;
+  }
 
   /// Get the current logged-in user's ID (Firestore document ID)
   String? getCurrentUserId() {
     return _cachedUserData?.id;
   }
 
-  /// Get Firebase Auth UID
-  String? getAuthUid() {
-    return _auth.currentUser?.uid;
-  }
-
   /// Get the current logged-in user's email
   String? getCurrentUserEmail() {
-    return _auth.currentUser?.email;
+    return _currentEmail ?? _cachedUserData?.email;
   }
 
   /// Get cached user name
@@ -37,19 +36,20 @@ class CurrentUserService {
   }
 
   /// Fetch and cache user data from Firestore (same as profile_screen)
-  Future<UserModel?> fetchCurrentUserData() async {
+  Future<UserModel?> fetchCurrentUserData({String? email}) async {
     try {
-      final user = _auth.currentUser;
-      if (user == null || user.email == null) return null;
+      final userEmail = email ?? _currentEmail;
+      if (userEmail == null) return null;
 
       final query = await _firestore
           .collection('users')
-          .where('email', isEqualTo: user.email!)
+          .where('email', isEqualTo: userEmail)
           .get();
 
       if (query.docs.isNotEmpty) {
         var doc = query.docs.first;
         _cachedUserData = UserModel.fromJson(doc.data(), doc.id);
+        _currentEmail = userEmail;
         return _cachedUserData;
       }
     } catch (e) {
@@ -66,17 +66,17 @@ class CurrentUserService {
   /// Clear cached data on logout
   void clearCache() {
     _cachedUserData = null;
+    _currentEmail = null;
   }
 
   /// Check if user is logged in
   bool isLoggedIn() {
-    return _auth.currentUser != null;
+    return _cachedUserData != null || _currentEmail != null;
   }
 
   /// Sign out and clear cache
   Future<void> signOut() async {
     clearCache();
-    await _auth.signOut();
   }
 }
 
