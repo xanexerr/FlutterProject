@@ -245,25 +245,72 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Picture Placeholder
-              Container(
-                width: double.infinity,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0E0E0),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Text(
-                    'picture',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF1B6A68),
-                      fontWeight: FontWeight.w500,
+              // Project Images
+              if (firebaseProjectData != null && firebaseProjectData!.containsKey('image_urls'))
+                Builder(
+                  builder: (context) {
+                    final imageUrls = firebaseProjectData!['image_urls'] as List<dynamic>?;
+                    if (imageUrls == null || imageUrls.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E0E0),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'No images',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF1B6A68),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 180,
+                      child: PageView.builder(
+                        itemCount: imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                image: NetworkImage(imageUrls[index].toString()),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0E0E0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'picture',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1B6A68),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(height: 16),
 
               // Team Section
@@ -311,6 +358,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           builder: (context, snapshot) {
                             String userName = 'Unknown';
                             String userEmail = 'N/A';
+                            String? profilePic;
 
                             if (snapshot.hasData && snapshot.data != null) {
                               final userData =
@@ -318,6 +366,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                       as Map<String, dynamic>?;
                               userName = userData?['full_name'] ?? 'Unknown';
                               userEmail = userData?['email'] ?? 'N/A';
+                              profilePic = userData?['profilePic'] as String?;
                             }
 
                             return Padding(
@@ -334,19 +383,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 child: Row(
                                   children: [
                                     Container(
-                                      width: 50,
-                                      height: 50,
+                                      width: 80,
+                                      height: 80,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFE0E0E0),
                                         borderRadius: BorderRadius.circular(6),
+                                        image: profilePic != null && profilePic.isNotEmpty
+                                            ? DecorationImage(
+                                                image: NetworkImage(profilePic),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null,
                                       ),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: AppTheme.primary,
-                                        size: 20,
-                                      ),
+                                      child: (profilePic == null || profilePic.isEmpty)
+                                          ? const Icon(
+                                              Icons.person,
+                                              color: AppTheme.primary,
+                                              size: 40,
+                                            )
+                                          : null,
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 20),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
