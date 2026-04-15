@@ -245,6 +245,34 @@ class _ProjectRequestsNotificationScreenState
 
   Future<void> _approveRequest(String userDocId, String requestId) async {
     try {
+      // Get the request data to access project_id and requester info
+      final requestDoc = await _firestore
+          .collection('users')
+          .doc(userDocId)
+          .collection('project_requests')
+          .doc(requestId)
+          .get();
+
+      final requestData = requestDoc.data() as Map<String, dynamic>;
+      final projectId = requestData['project_id'] as String;
+      final requesterStudentId = requestData['requester_student_id'] as String;
+      final position = requestData['position'] as String?;
+      final projectTitle = requestData['project_title'] as String?;
+
+      // Get the requester's user document ID (we need to find it by student_id)
+      final requesterUserQuery = await _firestore
+          .collection('users')
+          .where('student_id', isEqualTo: requesterStudentId)
+          .limit(1)
+          .get();
+
+      if (requesterUserQuery.docs.isEmpty) {
+        throw 'Requester user not found';
+      }
+
+      final requesterUserId = requesterUserQuery.docs.first.id;
+
+      // Update request status to approved
       await _firestore
           .collection('users')
           .doc(userDocId)
@@ -252,10 +280,32 @@ class _ProjectRequestsNotificationScreenState
           .doc(requestId)
           .update({'status': 'approved'});
 
+      // Add requester to project's members array
+      await _firestore
+          .collection('projects')
+          .doc(projectId)
+          .update({
+        'members.$requesterStudentId': position ?? 'Team Member',
+      });
+
+      // Add project to requester's projects list (as a subcollection or reference)
+      await _firestore
+          .collection('users')
+          .doc(requesterUserId)
+          .collection('projects')
+          .doc(projectId)
+          .set({
+        'project_id': projectId,
+        'project_title': projectTitle,
+        'position': position ?? 'Team Member',
+        'joined_at': FieldValue.serverTimestamp(),
+        'owner_id': userDocId,
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Request approved!'),
+            content: Text('Request approved! User added to project.'),
             backgroundColor: Colors.green,
           ),
         );
