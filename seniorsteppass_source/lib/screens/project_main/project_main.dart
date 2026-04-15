@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/mock_data.dart';
 import '../../models/favorites_manager.dart';
 import 'project_detail_screen.dart';
-import 'favorites_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/project_model.dart';
 
@@ -18,7 +16,10 @@ class ProjectMainScreen extends StatefulWidget {
 class _ProjectMainScreenState extends State<ProjectMainScreen> {
   final TextEditingController _searchController = TextEditingController();
   late Set<String> selectedFilters;
-  List<dynamic> displayedResults = [];
+  List<ProjectModel> displayedResults = [];
+  List<ProjectModel> allProjects = [];
+  List<ProjectModel> hotProjects = [];
+  List<ProjectModel> recommendProjects = [];
   bool isSearchActive = false;
   bool isFilterActive = false;
   final FavoritesManager _favoritesManager = FavoritesManager();
@@ -26,6 +27,7 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
   final CollectionReference projectsRef = FirebaseFirestore.instance.collection(
     'projects',
   );
+  bool isLoading = true;
 
   final List<String> filterOptions = [
     'Software Engineer',
@@ -39,7 +41,7 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
     super.initState();
     selectedFilters = widget.initialFilters ?? {};
     _searchController.addListener(_updateDisplay);
-    _updateDisplay();
+    _loadProjectsFromFirestore();
   }
 
   @override
@@ -50,11 +52,36 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
 
   List<ProjectModel> allProjectsFromFirestore = [];
 
-  void _updateDisplay() async {
-    // Fetch projects from Firestore
-    final img = await FirebaseFirestore.instance.collection('projects').get();
-    final allProjects = img.docs;
+  Future<void> _loadProjectsFromFirestore() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('projects')
+          .where('status', isEqualTo: 'Approved')
+          .get();
+      
+      final projects = snapshot.docs
+          .map((doc) => ProjectModel.fromJson(doc.data(), doc.id))
+          .toList();
+      
+      setState(() {
+        allProjects = projects;
+        hotProjects = projects.take(5).toList();
+        recommendProjects = projects.length > 5 
+            ? projects.sublist(5, projects.length > 10 ? 10 : projects.length)
+            : projects;
+        isLoading = false;
+      });
+      
+      _updateDisplay();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading projects: $e')),
+      );
+      setState(() => isLoading = false);
+    }
+  }
 
+  void _updateDisplay() {
     setState(() {
       String searchText = _searchController.text.trim().toLowerCase();
       isSearchActive = searchText.isNotEmpty;
@@ -62,37 +89,31 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
 
       if (isFilterActive && isSearchActive) {
         // Combined filter + search
-        displayedResults = mockProjects.where((project) {
-          bool matchesFilter = project.categories.any(
-            (cat) => selectedFilters.contains(cat),
+        displayedResults = allProjects.where((project) {
+          bool matchesFilter = project.tags.any(
+            (tag) => selectedFilters.contains(tag),
           );
           bool matchesSearch =
-              project.title.toLowerCase().contains(searchText.toLowerCase()) ||
-              project.description.toLowerCase().contains(
-                searchText.toLowerCase(),
-              );
+              project.title.toLowerCase().contains(searchText) ||
+              project.description.toLowerCase().contains(searchText);
           return matchesFilter && matchesSearch;
         }).toList();
       } else if (isFilterActive) {
         // Filter only
-        displayedResults = mockProjects
+        displayedResults = allProjects
             .where(
-              (project) => project.categories.any(
-                (cat) => selectedFilters.contains(cat),
+              (project) => project.tags.any(
+                (tag) => selectedFilters.contains(tag),
               ),
             )
             .toList();
       } else if (isSearchActive) {
         // Search only
-        displayedResults = mockProjects
+        displayedResults = allProjects
             .where(
               (project) =>
-                  project.title.toLowerCase().contains(
-                    searchText.toLowerCase(),
-                  ) ||
-                  project.description.toLowerCase().contains(
-                    searchText.toLowerCase(),
-                  ),
+                  project.title.toLowerCase().contains(searchText) ||
+                  project.description.toLowerCase().contains(searchText),
             )
             .toList();
       } else {
@@ -246,18 +267,24 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
               ),
               SizedBox(
                 height: 310,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 12.0,
-                  ),
-                  itemCount: mockProjects.length,
-                  itemBuilder: (context, index) {
-                    final project = mockProjects[index];
-                    return _buildProjectCard(project, context);
-                  },
-                ),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : hotProjects.isEmpty
+                        ? const Center(
+                            child: Text('No projects available'),
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 12.0,
+                            ),
+                            itemCount: hotProjects.length,
+                            itemBuilder: (context, index) {
+                              final project = hotProjects[index];
+                              return _buildProjectCard(project, context);
+                            },
+                          ),
               ),
 
               // Recommend Project Section
@@ -279,18 +306,22 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
               ),
               SizedBox(
                 height: 310,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 12.0,
-                  ),
-                  itemCount: mockProjects.length,
-                  itemBuilder: (context, index) {
-                    final project = mockProjects[index];
-                    return _buildProjectCard(project, context);
-                  },
-                ),
+                child: recommendProjects.isEmpty
+                    ? const Center(
+                        child: Text('No projects available'),
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        itemCount: recommendProjects.length,
+                        itemBuilder: (context, index) {
+                          final project = recommendProjects[index];
+                          return _buildProjectCard(project, context);
+                        },
+                      ),
               ),
             ],
           ],
@@ -299,7 +330,7 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
     );
   }
 
-  Widget _buildProjectCard(dynamic project, BuildContext context) {
+  Widget _buildProjectCard(ProjectModel project, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -331,12 +362,23 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                 width: double.infinity,
                 height: 150,
                 decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                child: const Center(
-                  child: Text(
-                    'image',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
-                  ),
-                ),
+                child: project.image_url.isNotEmpty
+                    ? Image.network(
+                        project.image_url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Center(
+                          child: Text('Image failed to load',
+                              style: TextStyle(
+                                  fontSize: 12, color: Color(0xFF999999))),
+                        ),
+                      )
+                    : const Center(
+                        child: Text(
+                          'No image',
+                          style:
+                              TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                        ),
+                      ),
               ),
             ),
             // Content
@@ -395,7 +437,7 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
     );
   }
 
-  Widget _buildSearchResultCard(dynamic project, BuildContext context) {
+  Widget _buildSearchResultCard(ProjectModel project, BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -426,12 +468,23 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                 width: double.infinity,
                 height: 150,
                 decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                child: const Center(
-                  child: Text(
-                    'image',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
-                  ),
-                ),
+                child: project.image_url.isNotEmpty
+                    ? Image.network(
+                        project.image_url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Center(
+                          child: Text('Image failed to load',
+                              style: TextStyle(
+                                  fontSize: 12, color: Color(0xFF999999))),
+                        ),
+                      )
+                    : const Center(
+                        child: Text(
+                          'No image',
+                          style:
+                              TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                        ),
+                      ),
               ),
             ),
             // Content
