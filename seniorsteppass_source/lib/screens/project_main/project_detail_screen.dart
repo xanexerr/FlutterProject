@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seniorsteppass_source/theme/app_theme.dart';
 import '../../models/favorites_manager.dart';
 import '../../widgets/common_buttons.dart';
 import '../main_screen/main_screen.dart';
 import 'request_join_project.dart';
+import '../../services/current_user_service.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final dynamic project;
@@ -19,6 +21,51 @@ class ProjectDetailScreen extends StatefulWidget {
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   final FavoritesManager _favoritesManager = FavoritesManager();
+  final CurrentUserService _userService = CurrentUserService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  String? currentUserStudentId;
+  bool isCurrentUserOwner = false;
+  bool isLoadingOwnerCheck = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfCurrentUserIsOwner();
+  }
+
+  Future<void> _checkIfCurrentUserIsOwner() async {
+    try {
+      final userEmail = _userService.getCurrentUserEmail();
+      if (userEmail == null) {
+        setState(() => isLoadingOwnerCheck = false);
+        return;
+      }
+
+      final userQuery = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: userEmail)
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isNotEmpty) {
+        final userData = userQuery.docs.first.data();
+        final studentId = userData['student_id'] as String? ?? '';
+        final projectOwnerId = widget.project.owner_id as String? ?? '';
+        
+        setState(() {
+          currentUserStudentId = studentId;
+          isCurrentUserOwner = studentId == projectOwnerId;
+          isLoadingOwnerCheck = false;
+        });
+      } else {
+        setState(() => isLoadingOwnerCheck = false);
+      }
+    } catch (e) {
+      print('Error checking project owner: $e');
+      setState(() => isLoadingOwnerCheck = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +125,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               // Categories Badge
               Builder(
                 builder: (context) {
-                  final categories = widget.project.categories;
+                  final categories = widget.project.tags;
                   final categoryList = categories is List
                       ? categories
                       : categories != null
@@ -119,7 +166,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppTheme.white,
                             ),
                           ),
                         ),
@@ -223,47 +270,67 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Want to Join Section
-              const Text(
-                'Want to Join?',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              // Want to Join Section - Only show if not owner
+              if (!isCurrentUserOwner && !isLoadingOwnerCheck)
+                const Text(
+                  'Want to Join?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RequestJoinProjectScreen(
-                          project: widget.project,
+              if (!isCurrentUserOwner && !isLoadingOwnerCheck)
+                const SizedBox(height: 8),
+              if (!isCurrentUserOwner && !isLoadingOwnerCheck)
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RequestJoinProjectScreen(
+                            project: widget.project,
+                          ),
                         ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF27AE60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF27AE60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: const Text(
+                      'Request JOIN!',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              if (isCurrentUserOwner)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B6A68),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
-                    'Request JOIN!',
+                    'This is your project',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
               const SizedBox(height: 20),
             ],
           ),
