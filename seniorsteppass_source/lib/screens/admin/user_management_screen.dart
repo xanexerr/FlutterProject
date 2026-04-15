@@ -430,6 +430,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   faculty: data['faculty'] ?? '',
                   role: data['role'] ?? 'User',
                   email: data['email'] ?? '',
+                  profilePic: data['profilePic'],
                 );
             return Card(
               elevation: 2,
@@ -443,27 +444,53 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Row 1: Id/uid & Name
+                    // Row 1: Profile Picture + Id/uid & Name
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          user.student_id.isNotEmpty ? user.student_id : user.id,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTeal,
-                            fontSize: 16,
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: user.profilePic != null && user.profilePic!.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    user.profilePic!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(Icons.person, size: 40, color: Colors.grey);
+                                    },
+                                  ),
+                                )
+                              : const Icon(Icons.person, size: 40, color: Colors.grey),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            user.full_name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppTheme.head,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.student_id.isNotEmpty ? user.student_id : user.id,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryTeal,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.full_name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppTheme.head,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
