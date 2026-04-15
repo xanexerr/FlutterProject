@@ -95,6 +95,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         'faculty': facultyCtrl.text,
                         'role': selectedRole,
                         'email': emailCtrl.text,
+                        'password': studentIdCtrl.text,
                       });
                     } else {
                       // CREATE operation
@@ -104,6 +105,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         'faculty': facultyCtrl.text,
                         'role': selectedRole,
                         'email': emailCtrl.text,
+                        'password': studentIdCtrl.text,
                       });
                     }
                     if (mounted) {
