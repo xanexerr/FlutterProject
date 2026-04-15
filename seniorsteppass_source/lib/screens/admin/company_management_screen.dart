@@ -76,7 +76,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _showCompanyModal(),
               icon: const Icon(Icons.add, size: 20),
-              label: const Text('Add'),
+              label: const Text('Add Company'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryTeal,
                 foregroundColor: AppTheme.white,
