@@ -11,9 +11,18 @@ import 'firebase_options.dart';
 void main() async {
   // Firebase initialization
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Firebase already initialized, ignore the error
+    if (e.toString().contains('duplicate-app')) {
+      print('Firebase already initialized');
+    } else {
+      rethrow;
+    }
+  }
   // ------------------------------------
   runApp(const SeniorStepPassApp());
 }
