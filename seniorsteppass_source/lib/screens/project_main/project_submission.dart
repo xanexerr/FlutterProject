@@ -22,7 +22,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
   final List<XFile> _imageFiles = []; // XFile supports web, mobile, desktop
   final List<String> projectImages = [];
   final List<String> projectLinks = [];
-  final List<String> projectMembers = [];
+  final Map<String, String> projectMembers = {}; // student_id: role
   final List<String> selectedTags = [];
   final ImagePicker _imagePicker = ImagePicker();
   final CloudinaryService _cloudinaryService = CloudinaryService();
@@ -360,9 +360,9 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...projectMembers.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  String member = entry.value;
+                ...projectMembers.entries.map((entry) {
+                  String studentId = entry.key;
+                  String role = entry.value;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Container(
@@ -377,16 +377,32 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              member,
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  studentId,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  role,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close, size: 18),
                             onPressed: () {
-                              setState(() => projectMembers.removeAt(index));
+                              setState(() => projectMembers.remove(studentId));
                             },
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -610,33 +626,65 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
   }
 
   void _showAddMemberDialog() {
-    final TextEditingController emailController = TextEditingController();
+    final TextEditingController studentIdController = TextEditingController();
+    String selectedRole = 'Frontend';
+    final List<String> roles = ['Frontend', 'Backend', 'UI/UX', 'QA', 'Project Manager'];
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Project Member'),
-        content: TextField(
-          controller: emailController,
-          decoration: const InputDecoration(
-            hintText: 'Enter member email',
-            border: OutlineInputBorder(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add Project Member'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: studentIdController,
+                  decoration: const InputDecoration(
+                    labelText: 'Student ID',
+                    hintText: 'Enter member student ID',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  decoration: const InputDecoration(
+                    labelText: 'Role',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: roles.map((role) {
+                    return DropdownMenuItem(
+                      value: role,
+                      child: Text(role),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => selectedRole = value ?? 'Frontend');
+                  },
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (studentIdController.text.isNotEmpty) {
+                  this.setState(() {
+                    projectMembers[studentIdController.text] = selectedRole;
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (emailController.text.isNotEmpty) {
-                setState(() => projectMembers.add(emailController.text));
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }

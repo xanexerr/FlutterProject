@@ -265,108 +265,91 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Team Members List
-              _buildTeamMemberCard(
-                avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor:  AppTheme.info,
-                name: 'Mrs. Unknown Norname',
-                email: 'contacting@example.com',
-                index: 0,
-              ),
-              const SizedBox(height: 8),
-              _buildTeamMemberCard(
-                avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor:  AppTheme.info,
-                name: 'Mrs. Unknown Norname',
-                email: 'contacting@example.com',
-                index: 1,
-              ),
-              const SizedBox(height: 8),
-              _buildTeamMemberCard(
-                avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor:  AppTheme.info,
-                name: 'Mrs. Unknown Norname',
-                email: 'contacting@example.com',
-                index: 2,
-              ),
-              const SizedBox(height: 8),
-              _buildTeamMemberCard(
-                avatarColor: const Color(0xFFE0E0E0),
-                backgroundColor:  AppTheme.info,
-                name: 'Mrs. Unknown Norname',
-                email: 'contacting@example.com',
-                index: 3,
-              ),
-              const SizedBox(height: 20),
-
-              // Project Owner Section
-              const Text(
-                'Project Owner',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.info,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    // Owner Avatar
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE0E0E0),
-                        borderRadius: BorderRadius.circular(6),
-                        image: ownerProfilePic != null && ownerProfilePic!.isNotEmpty
-                            ? DecorationImage(
-                                image: NetworkImage(ownerProfilePic!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-                      child: ownerProfilePic == null || ownerProfilePic!.isEmpty
-                          ? const Icon(
-                              Icons.person,
-                              color: AppTheme.primary,
-                              size: 30,
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    // Owner Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ownerName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.head,
-                            ),
+              // Team Members List from Firestore
+              if (firebaseProjectData != null && firebaseProjectData!.containsKey('members'))
+                Builder(
+                  builder: (context) {
+                    final members = firebaseProjectData!['members'] as Map<String, dynamic>?;
+                    if (members == null || members.isEmpty) {
+                      return const Text(
+                        'No team members yet',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      );
+                    }
+                    
+                    List<Widget> memberWidgets = [];
+                    members.forEach((studentId, role) {
+                      memberWidgets.add(
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            projectOwnerData?['student_id'] ?? 'N/A',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: AppTheme.head2,
-                            ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.info,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0E0E0),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppTheme.primary,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      studentId,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      role,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      memberWidgets.add(const SizedBox(height: 8));
+                    });
+                    
+                    return Column(
+                      children: memberWidgets,
+                    );
+                  },
+                )
+              else
+                const Text(
+                  'No team members',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
               const SizedBox(height: 20),
 
               // Project Status Section
@@ -448,64 +431,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTeamMemberCard({
-    required Color avatarColor,
-    required Color backgroundColor,
-    required String name,
-    required String email,
-    required int index,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: avatarColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Name and Email
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.head,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  email,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AppTheme.head,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Icons
-        
-        ],
       ),
     );
   }
