@@ -61,10 +61,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         data.student_id,
       );
 
-      // Fetch projects user joined (from users/{userDocId}/projects subcollection)
+      // Fetch projects user joined (from users/{userDocId}/projects subcollection and from Project collection members)
       List<Map<String, dynamic>> joinedProjects = [];
       if (userDocId.isNotEmpty) {
         try {
+          // Method 1: Fetch from users/{userDocId}/projects subcollection
           final joinedSnapshot = await FirebaseFirestore.instance
               .collection('users')
               .doc(userDocId)
@@ -89,6 +90,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 print('Error fetching joined project: $e');
               }
             }
+          }
+
+          // Method 2: Fetch projects where user's studentId is in members map
+          try {
+            final allProjectsSnapshot = await FirebaseFirestore.instance
+                .collection('projects')
+                .get();
+
+            for (var doc in allProjectsSnapshot.docs) {
+              final members = doc['members'] as Map<String, dynamic>?;
+              
+              // Check if current user's studentId exists in members map
+              if (members != null && members.containsKey(data.student_id)) {
+                final projectData = {...doc.data(), 'id': doc.id};
+
+                
+                // Avoid duplicates
+                if (!joinedProjects.any((p) => p['id'] == doc.id)) {
+                  joinedProjects.add(projectData);
+                }
+              }
+            }
+          } catch (e) {
+            print('Error fetching projects by members: $e');
           }
         } catch (e) {
           print('Error fetching joined projects: $e');
@@ -702,7 +727,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               right: Radius.circular(12),
             ),
             child: Image.network(
-              project['image_url'] ?? '',
+              (project['image_urls'] as List?)?.isNotEmpty == true 
+                  ? (project['image_urls'] as List)[0] 
+                  : '',
               width: 160,
               height: 90,
               fit: BoxFit.cover,
@@ -724,7 +751,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  project['title'] ?? 'Project Name',
+                  project['name'] ?? 'Project Name',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
