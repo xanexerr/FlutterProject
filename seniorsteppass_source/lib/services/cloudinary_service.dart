@@ -4,23 +4,17 @@ import 'package:image_picker/image_picker.dart';
 
 class CloudinaryService {
   final String cloudName = 'dlwydwqi9';
-  final String uploadPreset = 'SeniorPassStep_Projects';
+  // final String uploadPreset = 'SeniorPassStep_Projects';
+  // final String uploadPreset = 'SeniorPassStep_Users';
+  // final String uploadPreset = 'SeniorPassStep_Internships';
 
-  /// Upload image from XFile (supports web, mobile, desktop)
-  Future<String?> uploadImage(XFile imageFile) async {
-    try {
-      final url = Uri.parse(
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
-      );
-      
-      // Read file bytes from XFile
-      final bytes = await imageFile.readAsBytes();
-      
-      final request = http.MultipartRequest('POST', url)
-        ..fields['upload_preset'] = uploadPreset
-        ..files.add(
-          http.MultipartFile.fromBytes('file', bytes, filename: imageFile.name),
-        );
+  Future<String?> uploadImage(File imageFile, String uploadPreset) async {
+    final url = Uri.parse(
+      'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
+    );
+    final request = http.MultipartRequest('POST', url)
+      ..fields['upload_preset'] = uploadPreset
+      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
       final response = await request.send();
       if (response.statusCode == 200) {

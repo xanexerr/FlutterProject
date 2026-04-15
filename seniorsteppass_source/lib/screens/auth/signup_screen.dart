@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -29,11 +31,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Logo Text
-                Image.asset(
-                  '../../../assets/logo.png',
-                  height: 80,
-                  fit: BoxFit.contain,
-                ),
+                Image.asset('assets/logo.png', height: 80, fit: BoxFit.contain),
                 const SizedBox(height: 40),
 
                 // Main Card
@@ -185,17 +183,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleSignUp(BuildContext context) async {
-    final String username = _usernameController.text.trim();
+    final String email = _usernameController.text.trim();
     final String password = _passwordController.text.trim();
 
     // Validate input - fields must not be empty
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter username and password'),
+          content: Text('Please enter email and password'),
           backgroundColor: AppTheme.bad,
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -210,47 +208,75 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
 
-    // try {
-    //   // Insert new user into database
-    //   final dbHelper = DBHelper();
-    //   final user = await dbHelper.insertUser(username, password);
+    try {
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
 
-    //   await Future.delayed(const Duration(seconds: 1)); // Simulate loading time
+      if (userQuery.docs.isEmpty) {
+        if (!mounted) return;
+        navigator.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User Not Found, Please Contact Admin'),
+            backgroundColor: AppTheme.bad,
+          ),
+        );
+        return;
+      }
 
-    //   // Navigate to login screen
-    //   if (!mounted) return;
-      
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //       const SnackBar(
-    //         content: Text('Account created successfully'),
-    //         backgroundColor: AppTheme.success,
-    //         duration: Duration(seconds: 2),
-    //       ),
-    //     );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-    //   navigator.pushAndRemoveUntil(
-    //     MaterialPageRoute(builder: (context) => const LoginScreen()),
-    //     (route) => false, // Remove all previous routes
-    //   );
-      
-    // } catch (e) {
-    //   if (!mounted) return;
-    //   navigator.pop();
-      
-    //   String errorMessage = 'An error occurred $e';
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userQuery.docs.first.id)
+          .update({'id': userCredential.user!.uid});
 
-    //   if (e.toString().contains('UNIQUE constraint failed')) {
-    //     errorMessage = 'Username already exists. Please choose another.';
-    //   }
+      if (!mounted) return;
+      navigator.pop();
 
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text(errorMessage),
-    //       backgroundColor: AppTheme.bad,
-    //       duration: const Duration(seconds: 2),
-    //     ),
-    //   );
-    // }
-    
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account activated! Please login.'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+
+      // have an Account but login first time 
+      if (e.toString().contains('email-already-in-use')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account already activated. Please login.'),
+            backgroundColor: AppTheme.success,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        navigator.pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+        return;
+      }
+
+      String errorMessage = 'An error occurred $e';
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: AppTheme.bad,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }

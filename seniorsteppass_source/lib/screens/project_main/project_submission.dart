@@ -77,10 +77,22 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Get current user ID from Firestore
-      final currentUserService = CurrentUserService();
-      await currentUserService.fetchCurrentUserData();
-      final userId = currentUserService.getCurrentUserId();
+      String? imageUrl = await _cloudinaryService.uploadImage(
+        _imageFiles.first,
+        'SeniorPassStep_Projects',
+      );
+      if (imageUrl != null) {
+        // Save project data to Firestore
+        await FirebaseFirestore.instance.collection('projects').add({
+          'name': projectNameController.text.trim(),
+          'description': detailedController.text.trim(),
+          'owner_id': currentStudentId,
+          'image_url': imageUrl,
+          'links': projectLinks,
+          'members': projectMembers,
+          'tags': selectedTags,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
       if (userId == null) {
         throw Exception('User not authenticated');
