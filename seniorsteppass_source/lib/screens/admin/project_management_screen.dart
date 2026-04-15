@@ -83,9 +83,9 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                     DropdownButtonFormField<String>(
                       value: selectedStatus,
                       items: const [
-                        DropdownMenuItem(value: 'Active', child: Text('Active')),
-                        DropdownMenuItem(value: 'Completed', child: Text('Completed')),
-                        DropdownMenuItem(value: 'Archived', child: Text('Archived')),
+                        DropdownMenuItem(value: 'Pending', child: Text('Pending')),
+                        DropdownMenuItem(value: 'Approved', child: Text('Approved')),
+                        DropdownMenuItem(value: 'Hidden', child: Text('Hidden')),
                       ],
                       onChanged: (val) {
                         if (val != null) {
