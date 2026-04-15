@@ -5,8 +5,8 @@ import '../../theme/app_theme.dart';
 import '../main_screen/main_screen.dart';
 import '../project_main/project_submission.dart';
 import 'internship_review_form.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/database_service.dart';
+import '../../services/current_user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -31,10 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadAllData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && user.email != null) {
+    final userEmail = CurrentUserService().getCurrentUserEmail();
+    if (userEmail != null) {
       // Fetch user data and projects from Firestore
-      final data = await _dbService.getUserData(user.email!);
+      final data = await _dbService.getUserData(userEmail);
       // Fetch projects by student ID
       final List<ProjectModel> projectData = await _dbService.getUserProjects(
         data.student_id,
