@@ -296,7 +296,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                         if (isEditing) {
                                           await _firestore.collection('users').doc(user.id).update(updateData);
                                         } else {
-                                          await _firestore.collection('users').add(updateData);
+                                          await _firestore.collection('users').doc(studentIdCtrl.text).set(updateData);
                                         }
 
                                         if (mounted) {
@@ -386,23 +386,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppTheme.bg,
         elevation: 0,
-        title: const Text(
-          'User Management',
-          style: TextStyle(
-            color: AppTheme.head,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
+       
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton.icon(
               onPressed: () => _showUserModal(),
               icon: const Icon(Icons.add, size: 20),
-              label: const Text('Add'),
+              label: const Text('Add User'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryTeal,
                 foregroundColor: AppTheme.white,
