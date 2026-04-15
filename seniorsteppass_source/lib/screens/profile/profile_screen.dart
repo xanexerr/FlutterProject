@@ -599,7 +599,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      onTap: () {},
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const RequestWorkplaceScreen(),
+                                          ),
+                                        );
+                                      },
                                       child: const Center(
                                         child: Text(
                                           'Request New Workplace',
