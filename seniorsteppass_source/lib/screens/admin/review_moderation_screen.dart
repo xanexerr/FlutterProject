@@ -186,18 +186,31 @@ class _ReviewModerationScreenState extends State<ReviewModerationScreen> {
                       const SizedBox(height: 8),
                       Text('Reviewer: $userId', style: const TextStyle(fontSize: 14)),
                       const SizedBox(height: 4),
-                      Row(
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
                         children: [
-                          ...List.generate(
-                            5,
-                            (i) => Icon(
-                              Icons.star,
-                              color: i < roundedRating ? Colors.amber : Colors.grey[300],
-                              size: 16,
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ...List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star,
+                                  color: i < roundedRating
+                                      ? Colors.amber
+                                      : Colors.grey[300],
+                                  size: 16,
+                                ),
+                              ),
+                              Text(
+                                ' $roundedRating/5',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(' $roundedRating/5', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 16),
                           Text(createdAt, style: const TextStyle(fontSize: 12, color: AppTheme.head2)),
                         ],
                       ),
