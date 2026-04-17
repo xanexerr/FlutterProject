@@ -60,23 +60,23 @@ class DatabaseService {
 
 // ---- Admin Dashbosrd -----
   Future<int> getTotalUsersCount() async {
-    var snapshot = await _db.collection('users').get();
-    return snapshot.size;
+    var snapshot = await _db.collection('users').count().get();
+    return snapshot.count ?? 0;
   }
 
-  Future<int> getPendingProjectsCount() async {
-    var snapshot = await _db.collection('projects').where('status', isEqualTo: 'pending').get();
-    return snapshot.size;
+  Future<int> getActiveProjectsCount() async {
+    var snapshot = await _db.collection('projects').where('status', isEqualTo: 'Active').count().get();
+    return snapshot.count ?? 0;
   }
 
   Future<int> getTotalCompaniesCount() async {
-    var snapshot = await _db.collection('internships').get();
-    return snapshot.size;
+    var snapshot = await _db.collection('internships').count().get();
+    return snapshot.count ?? 0;
   }
 
   Future<int> getTotalReviewsCount() async {
-    var snapshot = await _db.collection('reviews').get();
-    return snapshot.size;
+    var snapshot = await _db.collection('reviews').count().get();
+    return snapshot.count ?? 0;
   }
 
 }

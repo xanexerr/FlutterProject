@@ -353,41 +353,57 @@ class _InternshipReviewFormState extends State<InternshipReviewForm> {
                   ],
                 ),
               ),
+              const SizedBox(height: 32),
 
-              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate() && _rating > 0) {
+                      final reviewData = {
+                        'company': widget.companyName,
+                        'position': widget.role,
+                        'rating': _rating,
+                        'comment': _reviewController.text,
+                        'reviewer_id': FirebaseAuth.instance.currentUser?.email ?? 'anonymous',
+                        'timestamp': FieldValue.serverTimestamp(),
+                        'status': 'Pending',
+                        'techStack': [],
+                      };
 
-              // Submit and Cancel Buttons
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _submitReview,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              _isEditing ? 'Update Feedback' : 'Submit',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                      try {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+
+                        await FirebaseFirestore.instance.collection('reviews').add(reviewData);
+
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Review submitted successfully!')),
+                          );
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (mounted) Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to submit review. Please try again later.')),
+                        );
+                      }
+                    } else if (_rating == 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please provide a rating')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(

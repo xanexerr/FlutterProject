@@ -252,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (!mounted) return;
       navigator.pop();
 
-      // have an Account but login first time
+      // have an Account but login first time 
       if (e.toString().contains('email-already-in-use')) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -268,6 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       String errorMessage = 'An error occurred $e';
+
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

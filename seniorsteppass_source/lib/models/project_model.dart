@@ -23,12 +23,7 @@ class TeamMember {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'role': role,
-      'profilePic': profilePic,
-    };
+    return {'id': id, 'name': name, 'role': role, 'profilePic': profilePic};
   }
 }
 
@@ -45,6 +40,7 @@ class ProjectModel {
   final String status; // 'Active', 'Completed', 'Archived'
   final int views;
   final int likes;
+  final String links;
 
   ProjectModel({
     required this.id,
@@ -59,49 +55,16 @@ class ProjectModel {
     required this.status,
     required this.views,
     required this.likes,
+    required this.links
   });
 
   // Convert from JSON
   factory ProjectModel.fromJson(Map<String, dynamic> json, String docId) {
-    // Handle members - can be List<String> (old format), Map<String, String> (new format with student_id: role)
-    var membersList = <TeamMember>[];
-    if (json['members'] != null) {
-      if (json['members'] is Map<String, dynamic>) {
-        // New format: Map<String, String> where key=student_id, value=role
-        final membersMap = json['members'] as Map<String, dynamic>;
-        membersList = membersMap.entries.map((e) {
-          return TeamMember(
-            id: e.key,
-            name: e.key,
-            role: e.value.toString(),
-            profilePic: null,
-          );
-        }).toList();
-      } else if (json['members'] is List<dynamic>) {
-        // Old format: List (email strings or objects)
-        membersList = (json['members'] as List<dynamic>).map((e) {
-          if (e is String) {
-            return TeamMember(
-              id: e,
-              name: e,
-              role: 'Member',
-              profilePic: null,
-            );
-          } else if (e is Map<String, dynamic>) {
-            return TeamMember.fromJson(e);
-          }
-          return TeamMember(id: '', name: '', role: '', profilePic: null);
-        }).toList();
-      }
-    }
-
-    // Handle both old format (image_url) and new format (image_urls)
-    String imageUrl = '';
-    if (json['image_urls'] != null && (json['image_urls'] as List<dynamic>).isNotEmpty) {
-      imageUrl = (json['image_urls'] as List<dynamic>).first as String;
-    } else if (json['image_url'] != null) {
-      imageUrl = json['image_url'] as String;
-    }
+    var membersList =
+        (json['members'] as List<dynamic>?)
+            ?.map((e) => TeamMember.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
 
     return ProjectModel(
       id: docId,
@@ -112,12 +75,13 @@ class ProjectModel {
       tags: List<String>.from(json['tags'] ?? []),
       categories: List<String>.from(json['categories'] ?? []),
       members: membersList,
-      timestamp: (json['created_at'] ?? json['timestamp']) != null 
-        ? ((json['created_at'] ?? json['timestamp']) as Timestamp).toDate() 
-        : DateTime.now(),
-      status: _normalizeStatus(json['status'] as String?),
+      timestamp: json['timestamp'] != null
+          ? (json['timestamp'] as Timestamp).toDate()
+          : DateTime.now(),
+      status: json['status'] ?? 'Active',
       views: json['views'] ?? 0,
       likes: json['likes'] ?? 0,
+      links: json['links'] ?? '',
     );
   }
 
@@ -152,6 +116,7 @@ class ProjectModel {
       'status': status,
       'views': views,
       'likes': likes,
+      'links': links
     };
   }
 }
