@@ -69,7 +69,7 @@ class _CompanyManagementScreenState extends State<CompanyManagementScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.bg,
         elevation: 0,
-      
+        automaticallyImplyLeading: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
