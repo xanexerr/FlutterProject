@@ -35,6 +35,25 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
     super.initState();
     _searchController.addListener(_updateDisplay);
     _fetchCompanies();
+    // Apply initial filters if provided, otherwise clear search
+    if (widget.initialFilters != null && widget.initialFilters!.isNotEmpty) {
+      _searchController.text = widget.initialFilters!.first;
+    } else {
+      _searchController.text = '';
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant InternshipMainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update search when initialFilters changes
+    if (oldWidget.initialFilters != widget.initialFilters) {
+      if (widget.initialFilters != null && widget.initialFilters!.isNotEmpty) {
+        _searchController.text = widget.initialFilters!.first;
+      } else {
+        _searchController.text = '';
+      }
+    }
   }
 
   Future<void> _fetchCompanies() async {

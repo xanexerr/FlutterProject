@@ -214,7 +214,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             MaterialPageRoute(
                               builder: (context) => MainScreen(
                                 initialIndex: 1,
-                                projectFilters: {label},
+                                projectCategoryFilters: {label},
                               ),
                             ),
                           );

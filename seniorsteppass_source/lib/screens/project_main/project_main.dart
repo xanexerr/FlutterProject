@@ -6,8 +6,13 @@ import '../../models/project_model.dart';
 
 class ProjectMainScreen extends StatefulWidget {
   final Set<String>? initialFilters;
+  final Set<String>? initialCategoryFilters;
 
-  const ProjectMainScreen({super.key, this.initialFilters});
+  const ProjectMainScreen({
+    super.key, 
+    this.initialFilters,
+    this.initialCategoryFilters,
+  });
 
   @override
   State<ProjectMainScreen> createState() => _ProjectMainScreenState();
@@ -39,9 +44,41 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
   @override
   void initState() {
     super.initState();
-    selectedFilters = widget.initialFilters ?? {};
+    // Apply initial category filters if provided (for filtering, not search)
+    if (widget.initialCategoryFilters != null && widget.initialCategoryFilters!.isNotEmpty) {
+      selectedFilters = widget.initialCategoryFilters!;
+      _searchController.text = '';
+    } else if (widget.initialFilters != null && widget.initialFilters!.isNotEmpty) {
+      // Apply initial search if initialFilters provided (for search, not filter)
+      selectedFilters = {};
+      _searchController.text = widget.initialFilters!.first;
+    } else {
+      // No filters or search
+      selectedFilters = {};
+      _searchController.text = '';
+    }
     _searchController.addListener(_updateDisplay);
     _loadProjectsFromFirestore();
+  }
+
+  @override
+  void didUpdateWidget(covariant ProjectMainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update when initialFilters or initialCategoryFilters changes
+    if (oldWidget.initialCategoryFilters != widget.initialCategoryFilters ||
+        oldWidget.initialFilters != widget.initialFilters) {
+      if (widget.initialCategoryFilters != null && widget.initialCategoryFilters!.isNotEmpty) {
+        selectedFilters = widget.initialCategoryFilters!;
+        _searchController.text = '';
+      } else if (widget.initialFilters != null && widget.initialFilters!.isNotEmpty) {
+        selectedFilters = {};
+        _searchController.text = widget.initialFilters!.first;
+      } else {
+        selectedFilters = {};
+        _searchController.text = '';
+      }
+      _updateDisplay();
+    }
   }
 
   @override

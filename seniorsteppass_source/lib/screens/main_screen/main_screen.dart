@@ -10,8 +10,16 @@ import '../profile/profile_screen.dart';
 class MainScreen extends StatefulWidget {
   final int initialIndex;
   final Set<String>? projectFilters;
+  final Set<String>? projectCategoryFilters;
+  final Set<String>? internshipFilters;
 
-  const MainScreen({super.key, this.initialIndex = 0, this.projectFilters});
+  const MainScreen({
+    super.key, 
+    this.initialIndex = 0, 
+    this.projectFilters,
+    this.projectCategoryFilters,
+    this.internshipFilters,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -19,17 +27,26 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _currentIndex;
+  late int _lastInitialIndex;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _lastInitialIndex = widget.initialIndex;
   }
 
-  late final List<Widget> _pages = [
+  List<Widget> get _buildPages => [
     const LandingPage(),
-    ProjectMainScreen(initialFilters: widget.projectFilters),
-    const InternshipMainScreen(),
+    ProjectMainScreen(
+      key: ValueKey('project_${_currentIndex == 1 && _currentIndex == _lastInitialIndex ? widget.projectFilters : null}'),
+      initialFilters: _currentIndex == 1 && _currentIndex == _lastInitialIndex ? widget.projectFilters : null,
+      initialCategoryFilters: _currentIndex == 1 && _currentIndex == _lastInitialIndex ? widget.projectCategoryFilters : null,
+    ),
+    InternshipMainScreen(
+      key: ValueKey('internship_${_currentIndex == 2 && _currentIndex == _lastInitialIndex ? widget.internshipFilters : null}'),
+      initialFilters: _currentIndex == 2 && _currentIndex == _lastInitialIndex ? widget.internshipFilters : null,
+    ),
     const FavoritesScreen(),
     const ProfileScreen(), // Profile Screen
   ];
@@ -43,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: const MainHeader(),
-      body: _pages[_currentIndex],
+      body: _buildPages[_currentIndex],
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -98,6 +115,7 @@ class _MainScreenState extends State<MainScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
+          _lastInitialIndex = -1; // Reset to indicate navbar navigation
           _currentIndex = index;
         });
       },

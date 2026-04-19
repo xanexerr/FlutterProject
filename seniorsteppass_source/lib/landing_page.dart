@@ -175,6 +175,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.white,
                           context,
                           initialFilters: {},
+                          isInternship: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -185,6 +186,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.white,
                           context,
                           initialFilters: {},
+                          isInternship: true,
                         ),
                       ),
                     ],
@@ -200,6 +202,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Software Engineer'},
+                          isInternship: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -210,6 +213,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Software Engineer'},
+                          isInternship: true,
                         ),
                       ),
                     ],
@@ -225,6 +229,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Data Science'},
+                          isInternship: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -235,6 +240,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Data Science'},
+                          isInternship: true,
                         ),
                       ),
                     ],
@@ -250,6 +256,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Internet Of Thing'},
+                          isInternship: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -260,6 +267,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Internet Of Thing'},
+                          isInternship: true,
                         ),
                       ),
                     ],
@@ -275,6 +283,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Cyber Security'},
+                          isInternship: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -285,6 +294,7 @@ class _LandingPageState extends State<LandingPage> {
                           AppTheme.primaryTeal,
                           context,
                           initialFilters: {'Cyber Security'},
+                          isInternship: true,
                         ),
                       ),
                     ],
@@ -356,14 +366,18 @@ class _LandingPageState extends State<LandingPage> {
     Color textColor,
     BuildContext context, {
     required Set<String> initialFilters,
+    bool isInternship = false,
   }) {
     return GestureDetector(
       onTap: () {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                MainScreen(initialIndex: 1, projectFilters: initialFilters),
+            builder: (context) => MainScreen(
+              initialIndex: isInternship ? 2 : 1,
+              projectFilters: isInternship ? null : initialFilters,
+              internshipFilters: isInternship ? initialFilters : null,
+            ),
           ),
         );
       },
