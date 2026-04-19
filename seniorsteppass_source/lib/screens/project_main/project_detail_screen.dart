@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:seniorsteppass_source/theme/app_theme.dart';
 import '../../models/favorites_manager.dart';
 import '../../widgets/common_buttons.dart';
@@ -118,6 +119,45 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     } catch (e) {
       print('Error checking project owner: $e');
       setState(() => isLoadingOwnerCheck = false);
+    }
+  }
+
+  Future<void> _launchProjectLink() async {
+    try {
+      final linksData = firebaseProjectData?['links'];
+      String? linkUrl;
+
+      // Handle both String and List types
+      if (linksData is String) {
+        linkUrl = linksData;
+      } else if (linksData is List && linksData.isNotEmpty) {
+        linkUrl = linksData.first.toString();
+      }
+
+      if (linkUrl != null && linkUrl.isNotEmpty) {
+        // Ensure URL has a scheme
+        if (!linkUrl.startsWith('http://') && !linkUrl.startsWith('https://')) {
+          linkUrl = 'https://$linkUrl';
+        }
+
+        final Uri url = Uri.parse(linkUrl);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open project link')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No project link available')),
+        );
+      }
+    } catch (e) {
+      print('Error launching project link: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
@@ -311,6 +351,31 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     ),
                   ),
                 ),
+              const SizedBox(height: 16),
+
+              // More about Project Button
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: _launchProjectLink,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.info,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'More about project',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
 
               // Team Section
