@@ -2,7 +2,7 @@
 
 A Flutter application that simplifies senior project management and internship tracking for students and administrators.
 
-## 🎯 Features
+## Features
 
 ### Core Features
 - **User Management** - Admin panel for managing students and user roles
@@ -26,7 +26,7 @@ A Flutter application that simplifies senior project management and internship t
   - Tap image to view fullscreen
   - Graceful error handling
 
-#### Review Rating System ⭐
+#### Review Rating System 
 - **Unified Rating Calculation**: Calculate average from individual ratings
   - Workload Rating
   - Environment Rating
@@ -38,13 +38,13 @@ A Flutter application that simplifies senior project management and internship t
   - `review_moderation_screen.dart` - Admin moderation
   - Consistent rating display across app
 
-#### User Profiles in Reviews 👤
+#### User Profiles in Reviews 
 - Display reviewer's profile picture in feedback cards
 - Show user initials if no profile picture available
 - Graceful fallback to default avatar
 - User name and department display
 
-#### Project Management 🚀
+#### Project Management 
 - **Owner Badge**: Red circle with star icon for owned projects
 - **Auto-sync Joined Projects**: 
   - Automatically sync projects where user is a team member
@@ -59,7 +59,7 @@ A Flutter application that simplifies senior project management and internship t
 - Responsive design
 - Admin moderation dashboard
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 lib/
@@ -91,7 +91,7 @@ lib/
     └── app_theme.dart
 ```
 
-## 📱 Key Screens
+## Key Screens
 
 1. **Profile Screen** - Display user info, projects, and internships
 2. **Internship Detail** - Browse internship with reviews and ratings
@@ -99,7 +99,7 @@ lib/
 4. **Admin Dashboard** - User, project, and company management
 5. **Project Requests** - Request and approve project membership
 
-## 🔧 Technical Stack
+## Technical Stack
 
 - **Framework**: Flutter
 - **Backend**: Firebase Firestore
@@ -107,7 +107,7 @@ lib/
 - **State Management**: Inherited Widget / Provider
 - **UI Components**: Material Design
 
-## 📊 Database Schema
+##  Database Schema
 
 ### Collections
 - `users` - User profiles and settings
@@ -120,14 +120,14 @@ lib/
 - `users/{userId}/projects` - User's joined/created projects
 - `users/{userId}/project_requests` - Project join requests
 
-## 🚀 Firebase Configuration
+## Firebase Configuration
 
 - Project: `senior-pass-step`
 - Region: Asia Southeast 1
 - Authentication: Email/Password
 - Cloud Storage: gs://senior-pass-step.appspot.com
 
-## 🎨 Theming
+## Theming
 
 Custom theme with:
 - Primary Color: Teal (#1B7F7E)
@@ -153,14 +153,14 @@ flutter run -d chrome
 flutter run -d edge
 ```
 
-## 🔐 Security Notes
+## Security Notes
 
 - Firebase rules restrict access to authenticated users
 - Student ID used as document ID for users
 - Review status requires admin approval before display
 - Profile pictures stored on Cloudinary
 
-## 📝 Version History
+## Version History
 
 ### Latest (April 16, 2026)
 - [de52210] Add image upload to Cloudinary in internship review and display review images with expand functionality
@@ -172,10 +172,10 @@ flutter run -d edge
 - Project approval workflow
 - Firebase login and authentication
 
-## 🤝 Contributing
+## Contributing
 
 Contact development team for contribution guidelines.
 
-## 📄 License
+## License
 
 All rights reserved.
