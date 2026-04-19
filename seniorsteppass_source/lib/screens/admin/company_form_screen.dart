@@ -79,6 +79,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
           'location': locationCtrl.text,
           'website': websiteCtrl.text,
           'logo_url': logoUrlCtrl.text,
+          'request_status': 'approved',
           'updated_at': _formatTimestamp(DateTime.now()),
         });
       } else {
@@ -93,6 +94,7 @@ class _CompanyFormScreenState extends State<CompanyFormScreen> {
           'location': locationCtrl.text,
           'website': websiteCtrl.text,
           'logo_url': logoUrlCtrl.text,
+          'request_status': 'approved',
           'overallRating': 0.0,
           'reviewCount': 0,
           'created_at': timestamp,

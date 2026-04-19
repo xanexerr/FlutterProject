@@ -58,8 +58,16 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
 
   Future<void> _fetchCompanies() async {
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('internships').get();
-      final companies = snapshot.docs.map((doc) => CompanyModel.fromJson(doc.data(), doc.id)).toList();
+      // Query internships and filter by approved request_status
+      final snapshot = await FirebaseFirestore.instance
+          .collection('internships')
+          .where('request_status', isEqualTo: 'approved')
+          .get();
+      
+      final companies = snapshot.docs
+          .map((doc) => CompanyModel.fromJson(doc.data(), doc.id))
+          .toList();
+      
       setState(() {
         allCompanies = companies;
         isLoading = false;

@@ -30,31 +30,28 @@ class _WorkplaceRequestsManagementScreenState
     try {
       final requests = <Map<String, dynamic>>[];
 
-      // Get all users
-      final usersSnapshot = await _firestore.collection('users').get();
+      // Get internship requests directly from internships collection
+      final internshipsSnapshot = await _firestore
+          .collection('internships')
+          .where('request_status', isEqualTo: _filterStatus)
+          .get();
 
-      // For each user, get their workplace requests
-      for (final userDoc in usersSnapshot.docs) {
-        final requestsSnapshot = await userDoc.reference
-            .collection('workplace_requests')
-            .where('status', isEqualTo: _filterStatus)
-            .get();
-
-        for (final requestDoc in requestsSnapshot.docs) {
-          final data = requestDoc.data();
-          requests.add({
-            'id': requestDoc.id,
-            'userDocId': userDoc.id,
-            'workplace_name': data['workplace_name'] ?? 'N/A',
-            'company': data['company'] ?? 'N/A',
-            'position': data['position'] ?? 'N/A',
-            'description': data['description'] ?? '',
-            'requester_name': data['requester_name'] ?? 'Unknown',
-            'requester_student_id': data['requester_student_id'] ?? 'N/A',
-            'requested_at': data['requested_at'] as Timestamp?,
-            'status': data['status'] ?? 'pending',
-          });
-        }
+      for (final doc in internshipsSnapshot.docs) {
+        final data = doc.data();
+        requests.add({
+          'id': doc.id,
+          'userDocId': data['requester_uid'] ?? '',
+          'workplace_name': data['company_name'] ?? 'N/A',
+          'company': data['company_name'] ?? 'N/A',
+          'position': data['department'] ?? 'N/A',
+          'description': data['description'] ?? '',
+          'location': data['location'] ?? '',
+          'website': data['website'] ?? '',
+          'requester_name': data['requester_name'] ?? 'Unknown',
+          'requester_student_id': data['requester_student_id'] ?? 'N/A',
+          'requested_at': data['timestamp'] as Timestamp?,
+          'status': data['request_status'] ?? 'pending',
+        });
       }
 
       // Sort by date (newest first)
@@ -87,11 +84,9 @@ class _WorkplaceRequestsManagementScreenState
   ) async {
     try {
       await _firestore
-          .collection('users')
-          .doc(userDocId)
-          .collection('workplace_requests')
+          .collection('internships')
           .doc(requestId)
-          .update({'status': newStatus});
+          .update({'request_status': newStatus});
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,6 +119,9 @@ class _WorkplaceRequestsManagementScreenState
               _DetailRow('Workplace:', request['workplace_name']),
               _DetailRow('Company:', request['company']),
               _DetailRow('Position:', request['position']),
+              _DetailRow('Location:', request['location']),
+              if (request['website'].isNotEmpty)
+                _DetailRow('Website:', request['website']),
               _DetailRow('Requester:', request['requester_name']),
               _DetailRow('Student ID:', request['requester_student_id']),
               _DetailRow(

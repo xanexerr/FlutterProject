@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:seniorsteppass_source/theme/app_theme.dart';
@@ -134,21 +135,29 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         linkUrl = linksData.first.toString();
       }
 
+      print('DEBUG: Links data from Firebase: $linksData');
+      print('DEBUG: Extracted URL: $linkUrl');
+
       if (linkUrl != null && linkUrl.isNotEmpty) {
         // Ensure URL has a scheme
         if (!linkUrl.startsWith('http://') && !linkUrl.startsWith('https://')) {
           linkUrl = 'https://$linkUrl';
         }
 
+        print('DEBUG: Final URL to launch: $linkUrl');
+
         final Uri url = Uri.parse(linkUrl);
+        print('DEBUG: Can launch URL: ${await canLaunchUrl(url)}');
+
         if (await canLaunchUrl(url)) {
+          print('DEBUG: Attempting to launch URL...');
           await launchUrl(url, mode: LaunchMode.externalApplication);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open project link')),
-          );
+          print('DEBUG: Cannot launch URL, showing dialog');
+          _showUrlDialog(linkUrl);
         }
       } else {
+        print('DEBUG: No project link available');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No project link available')),
         );
@@ -159,6 +168,81 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  void _showUrlDialog(String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Project Link'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('URL:'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    url,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                      color: AppTheme.info,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Copy to clipboard
+                Clipboard.setData(ClipboardData(text: url));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Link copied to clipboard')),
+                );
+                Navigator.pop(context);
+              },
+              child: const Text('Copy Link'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                try {
+                  final Uri uri = Uri.parse(url);
+                  print('DEBUG: Retrying to launch: $url');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } else {
+                    print('DEBUG: Still cannot launch after retry');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Unable to open link. Please try copying and opening in browser.'),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print('Error retrying to launch: $e');
+                }
+              },
+              child: const Text('Try Open'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
