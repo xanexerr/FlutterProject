@@ -176,6 +176,7 @@ class _LandingPageState extends State<LandingPage> {
                           context,
                           initialFilters: {},
                           isInternship: false,
+                          useFilter: true,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -203,6 +204,7 @@ class _LandingPageState extends State<LandingPage> {
                           context,
                           initialFilters: {'Software Engineer'},
                           isInternship: false,
+                          useFilter: true,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -230,6 +232,7 @@ class _LandingPageState extends State<LandingPage> {
                           context,
                           initialFilters: {'Data Science'},
                           isInternship: false,
+                          useFilter: true,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -257,6 +260,7 @@ class _LandingPageState extends State<LandingPage> {
                           context,
                           initialFilters: {'Internet Of Thing'},
                           isInternship: false,
+                          useFilter: true,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -284,6 +288,7 @@ class _LandingPageState extends State<LandingPage> {
                           context,
                           initialFilters: {'Cyber Security'},
                           isInternship: false,
+                          useFilter: true,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -367,6 +372,7 @@ class _LandingPageState extends State<LandingPage> {
     BuildContext context, {
     required Set<String> initialFilters,
     bool isInternship = false,
+    bool useFilter = false,
   }) {
     return GestureDetector(
       onTap: () {
@@ -375,7 +381,8 @@ class _LandingPageState extends State<LandingPage> {
           MaterialPageRoute(
             builder: (context) => MainScreen(
               initialIndex: isInternship ? 2 : 1,
-              projectFilters: isInternship ? null : initialFilters,
+              projectFilters: !isInternship && !useFilter ? initialFilters : null,
+              projectCategoryFilters: !isInternship && useFilter ? initialFilters : null,
               internshipFilters: isInternship ? initialFilters : null,
             ),
           ),
