@@ -263,7 +263,7 @@ class _InternshipMainScreenState extends State<InternshipMainScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'ALL INTERNSHIPS (${allCompanies.length})',
+                          'Results (${allCompanies.length})',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

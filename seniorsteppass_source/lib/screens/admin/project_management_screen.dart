@@ -48,7 +48,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
     final titleCtrl = TextEditingController(text: project?.title ?? '');
     final descCtrl = TextEditingController(text: project?.description ?? '');
     final authorCtrl = TextEditingController(text: project?.owner_id ?? '');
-    String selectedStatus = project?.status ?? 'Active';
+    String selectedStatus = project?.status ?? 'Pending';
 
     showDialog(
       context: context,
