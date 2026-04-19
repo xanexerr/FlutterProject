@@ -550,7 +550,7 @@ class _ProjectSubmissionScreenState extends State<ProjectSubmissionScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _submitData,
+                    onPressed: _isLoading ? null : _submitData,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.success,
                       shape: RoundedRectangleBorder(
