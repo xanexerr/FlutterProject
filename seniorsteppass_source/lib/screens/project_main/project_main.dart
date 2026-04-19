@@ -224,12 +224,10 @@ class _ProjectMainScreenState extends State<ProjectMainScreen> {
                           onTap: _showFilterDialog,
                           borderRadius: BorderRadius.circular(24),
                           child: const Center(
-                            child: Text(
-                              'All',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
+                            child: Icon(
+                              Icons.sort,
+                              color: Colors.white,
+                              size: 20,
                             ),
                           ),
                         ),
