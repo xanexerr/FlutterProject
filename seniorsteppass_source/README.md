@@ -13,6 +13,26 @@ A Flutter application that simplifies senior project management and internship t
 
 ### Recent Updates (Latest Session)
 
+#### Project Links Feature 🔗
+- **"More About Project" Button**: 
+  - Located below project images and above team section
+  - Styled with AppTheme.info color (blue button)
+  - Fetches project links from Firebase 'links' field (supports both String and List types)
+  - Automatically adds `https://` if URL missing scheme
+  - Opens links directly in default browser using `url_launcher`
+  - Error handling with user feedback
+
+#### Project Navigation System 
+- **Landing Page Buttons**: 
+  - Left side project buttons use category filters
+  - Right side internship buttons use search
+  - Smooth navigation with proper state management
+  - Uses ValueKey to clear search/filters on navbar navigation
+- **Search vs Filter Distinction**:
+  - ProjectMainScreen: Supports both search (initialFilters) and category filters (initialCategoryFilters)
+  - InternshipMainScreen: Supports search with initialFilters
+  - Category badges on ProjectDetailScreen are clickable links to filter projects
+
 #### Image Upload & Display 📸
 - **Internship Reviews**: Upload review images to Cloudinary
   - Pick images from gallery
@@ -93,17 +113,20 @@ lib/
 
 ## Key Screens
 
-1. **Profile Screen** - Display user info, projects, and internships
-2. **Internship Detail** - Browse internship with reviews and ratings
-3. **Review Form** - Submit internship feedback with ratings and images
-4. **Admin Dashboard** - User, project, and company management
-5. **Project Requests** - Request and approve project membership
+1. **Profile Screen** - Display user info, owned and joined projects, and internships
+2. **Project Detail** - Browse project details with team members, links, and clickable category filters
+3. **Internship Detail** - Browse internship with reviews, ratings, and reviewer information
+4. **Review Form** - Submit internship feedback with ratings and images
+5. **Admin Dashboard** - User, project, and company management
+6. **Project Requests** - Request and approve project membership
+7. **Landing Page** - Navigate to projects (with category filters) or internships (with search)
 
 ## Technical Stack
 
 - **Framework**: Flutter
 - **Backend**: Firebase Firestore
 - **Image Storage**: Cloudinary
+- **URL Launcher**: url_launcher (for opening project links in browser)
 - **State Management**: Inherited Widget / Provider
 - **UI Components**: Material Design
 
@@ -162,12 +185,17 @@ flutter run -d edge
 
 ## Version History
 
-### Latest (April 16, 2026)
+### Latest (April 19, 2026)
+- [1f91b05] Add url_launcher package and implement 'More about project' button to open links in browser
+- [d537259] Update project buttons on landing page to use category filter instead of search
+- [060c991] Fix overflow in internship review form with Flexible widgets
+
+### Previous Sessions
 - [de52210] Add image upload to Cloudinary in internship review and display review images with expand functionality
 - [779e84b] Auto-sync joined projects to users subcollection when found in members map
 - [a61fb53] Fix collection name from Project to projects for member search
 
-### Previous
+### Earlier
 - User management with profile pictures
 - Project approval workflow
 - Firebase login and authentication
